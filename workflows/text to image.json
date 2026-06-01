@@ -1,0 +1,340 @@
+{
+  "708": {
+    "inputs": {
+      "filename_prefix": "2026-05-31/20260531_234354_output",
+      "images": [
+        "709:660",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "710": {
+    "inputs": {
+      "value": "a small wooden desk in a poor apartment corner, an open diary with the handwritten words “DOWN WITH BIG BROTHER,” an old ink pen, scattered papers, dim desk lamp, cracked concrete wall, exposed pipes, and a wall-mounted telescreen partly visible but not directly facing the desk. A red surveillance glow leaks from the corner, creating tension. Dark Orwellian graphic-novel style, muted grey-green and dirty beige tones, heavy black shadows, rough ink lines, grainy paper texture, intimate paranoid atmosphere, first act of rebellion."
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "String (Multiline)"
+    }
+  },
+  "709:656": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
+  },
+  "709:657": {
+    "inputs": {
+      "steps": [
+        "709:669",
+        0
+      ],
+      "width": [
+        "709:670",
+        0
+      ],
+      "height": [
+        "709:671",
+        0
+      ]
+    },
+    "class_type": "Flux2Scheduler",
+    "_meta": {
+      "title": "Flux2Scheduler"
+    }
+  },
+  "709:658": {
+    "inputs": {
+      "cfg": [
+        "709:675",
+        0
+      ],
+      "model": [
+        "709:711",
+        0
+      ],
+      "positive": [
+        "709:667",
+        0
+      ],
+      "negative": [
+        "709:662",
+        0
+      ]
+    },
+    "class_type": "CFGGuider",
+    "_meta": {
+      "title": "CFGGuider"
+    }
+  },
+  "709:659": {
+    "inputs": {
+      "noise": [
+        "709:663",
+        0
+      ],
+      "guider": [
+        "709:658",
+        0
+      ],
+      "sampler": [
+        "709:656",
+        0
+      ],
+      "sigmas": [
+        "709:657",
+        0
+      ],
+      "latent_image": [
+        "709:661",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  },
+  "709:660": {
+    "inputs": {
+      "samples": [
+        "709:659",
+        0
+      ],
+      "vae": [
+        "709:666",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "709:661": {
+    "inputs": {
+      "width": [
+        "709:670",
+        0
+      ],
+      "height": [
+        "709:671",
+        0
+      ],
+      "batch_size": 1
+    },
+    "class_type": "EmptyFlux2LatentImage",
+    "_meta": {
+      "title": "Empty Flux 2 Latent"
+    }
+  },
+  "709:662": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "709:711",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "709:663": {
+    "inputs": {
+      "noise_seed": [
+        "709:668",
+        0
+      ]
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "709:664": {
+    "inputs": {
+      "unet_name": "flux-2-klein-base-9b-fp8.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "709:665": {
+    "inputs": {
+      "clip_name": "qwen_3_8b_fp8mixed.safetensors",
+      "type": "flux2",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Load CLIP"
+    }
+  },
+  "709:666": {
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "709:667": {
+    "inputs": {
+      "text": [
+        "709:674",
+        0
+      ],
+      "clip": [
+        "709:711",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "709:668": {
+    "inputs": {
+      "value": 175044758943442
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "seed"
+    }
+  },
+  "709:669": {
+    "inputs": {
+      "value": 20
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "steps"
+    }
+  },
+  "709:670": {
+    "inputs": {
+      "value": 1024
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "width"
+    }
+  },
+  "709:671": {
+    "inputs": {
+      "value": 1024
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "height"
+    }
+  },
+  "709:672": {
+    "inputs": {
+      "value": "ramy"
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "author"
+    }
+  },
+  "709:673": {
+    "inputs": {
+      "value": "FLUX.2 Text-to-Image"
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "model"
+    }
+  },
+  "709:674": {
+    "inputs": {
+      "prompt": [
+        "710",
+        0
+      ]
+    },
+    "class_type": "CR Prompt Text",
+    "_meta": {
+      "title": "⚙️ CR Prompt Text"
+    }
+  },
+  "709:675": {
+    "inputs": {
+      "value": 5
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "cfg"
+    }
+  },
+  "709:676": {
+    "inputs": {
+      "seed": [
+        "709:668",
+        0
+      ],
+      "steps": [
+        "709:669",
+        0
+      ],
+      "model": [
+        "709:673",
+        0
+      ],
+      "author": [
+        "709:672",
+        0
+      ],
+      "output_path": "[time(%Y-%m-%d)]",
+      "file_prefix": "[time(%Y%m%d_%H%M%S)]_param",
+      "wrap_width": 60,
+      "font_family": "Arial",
+      "font_size": 36,
+      "dark_mode": false,
+      "save_yaml": true,
+      "prompt": [
+        "709:674",
+        0
+      ],
+      "negative_prompt": "",
+      "additional_text": ""
+    },
+    "class_type": "SaveParamsSVG",
+    "_meta": {
+      "title": "Save Params as SVG"
+    }
+  },
+  "709:711": {
+    "inputs": {
+      "lora_name": "FLUX.2_9b\\torzev.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "709:664",
+        0
+      ],
+      "clip": [
+        "709:665",
+        0
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "Load LoRA (Model and CLIP)"
+    }
+  }
+}

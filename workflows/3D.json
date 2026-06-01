@@ -1,0 +1,192 @@
+{
+  "1": {
+    "inputs": {
+      "image": "cannon.webp"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "10": {
+    "inputs": {
+      "mask": [
+        "1",
+        1
+      ]
+    },
+    "class_type": "MaskPreview",
+    "_meta": {
+      "title": "Preview Mask"
+    }
+  },
+  "11": {
+    "inputs": {
+      "mask": [
+        "85",
+        1
+      ]
+    },
+    "class_type": "InvertMask",
+    "_meta": {
+      "title": "InvertMask"
+    }
+  },
+  "64": {
+    "inputs": {
+      "model_file": [
+        "74",
+        0
+      ],
+      "image": ""
+    },
+    "class_type": "Preview3D",
+    "_meta": {
+      "title": "Preview 3D & Animation"
+    }
+  },
+  "68": {
+    "inputs": {
+      "resolution": "512",
+      "precision": "auto",
+      "attn_backend": "auto"
+    },
+    "class_type": "LoadTrellis2Models",
+    "_meta": {
+      "title": "Load TRELLIS.2 Models"
+    }
+  },
+  "69": {
+    "inputs": {
+      "background_color": "black",
+      "model_config": [
+        "68",
+        0
+      ],
+      "image": [
+        "79",
+        0
+      ],
+      "mask": [
+        "79",
+        1
+      ]
+    },
+    "class_type": "Trellis2GetConditioning",
+    "_meta": {
+      "title": "TRELLIS.2 Get Conditioning"
+    }
+  },
+  "73": {
+    "inputs": {
+      "seed": 42,
+      "ss_guidance_strength": 7.5,
+      "ss_sampling_steps": 12,
+      "shape_guidance_strength": 7.5,
+      "shape_sampling_steps": 12,
+      "max_tokens": 40960,
+      "model_config": [
+        "68",
+        0
+      ],
+      "conditioning": [
+        "69",
+        0
+      ]
+    },
+    "class_type": "Trellis2ImageToShape",
+    "_meta": {
+      "title": "TRELLIS.2 Image to Shape"
+    }
+  },
+  "74": {
+    "inputs": {
+      "voxelgrid_path": [
+        "75",
+        1
+      ],
+      "decimation_target": 200000,
+      "texture_size": 1024,
+      "remesh": true,
+      "filename_prefix": "trellis2"
+    },
+    "class_type": "Trellis2ExportGLB",
+    "_meta": {
+      "title": "TRELLIS.2 Export GLB"
+    }
+  },
+  "75": {
+    "inputs": {
+      "seed": 500,
+      "tex_guidance_strength": 7.5,
+      "tex_sampling_steps": 12,
+      "model_config": [
+        "68",
+        0
+      ],
+      "conditioning": [
+        "69",
+        0
+      ],
+      "shape_result": [
+        "73",
+        0
+      ]
+    },
+    "class_type": "Trellis2ShapeToTexturedMesh",
+    "_meta": {
+      "title": "TRELLIS.2 Shape to Textured Mesh"
+    }
+  },
+  "79": {
+    "inputs": {
+      "low_vram": true,
+      "image": [
+        "85",
+        0
+      ]
+    },
+    "class_type": "Trellis2RemoveBackground",
+    "_meta": {
+      "title": "TRELLIS.2 Remove Background"
+    }
+  },
+  "85": {
+    "inputs": {
+      "image": "20260530_205819_output_00002_.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "88": {
+    "inputs": {
+      "mask": [
+        "79",
+        1
+      ]
+    },
+    "class_type": "MaskPreview",
+    "_meta": {
+      "title": "Preview Mask"
+    }
+  },
+  "93": {
+    "inputs": {
+      "resize_type": "scale dimensions",
+      "resize_type.width": 5000,
+      "resize_type.height": 5000,
+      "resize_type.crop": "center",
+      "scale_method": "area",
+      "input": [
+        "85",
+        0
+      ]
+    },
+    "class_type": "ResizeImageMaskNode",
+    "_meta": {
+      "title": "Resize Image/Mask"
+    }
+  }
+}

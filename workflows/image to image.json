@@ -1,0 +1,484 @@
+{
+  "691": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "upscale_method": "nearest-exact",
+      "keep_proportion": "stretch",
+      "pad_color": "0, 0, 0",
+      "crop_position": "center",
+      "divisible_by": 2,
+      "device": "cpu",
+      "image": [
+        "694",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJv2",
+    "_meta": {
+      "title": "Resize Image v2"
+    }
+  },
+  "692": {
+    "inputs": {
+      "filename_prefix": "2026-05-31/20260531_212109_output",
+      "images": [
+        "690:655",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "693": {
+    "inputs": {
+      "value": "torzev, add the reference building into the Pearl Qatar marina scene, place it naturally on the waterfront edge, keep the original marina perspective and camera angle, integrate the building as an Archigram-inspired technical ink architectural illustration, black ink linework, exposed structure, plug-in elements, flat color accents, white paper collage aesthetic, match the scale of the surrounding towers, preserve the water, docks, boats, and skyline, no photorealism, no realistic render, no text, no bottom diagrams"
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "String (Multiline)"
+    }
+  },
+  "694": {
+    "inputs": {
+      "image": "WhatsApp Image 2026-05-28 at 2.57.24 PM.jpeg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "698": {
+    "inputs": {
+      "value": ""
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "negative prompt"
+    }
+  },
+  "690:651": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
+  },
+  "690:652": {
+    "inputs": {
+      "steps": [
+        "690:665",
+        0
+      ],
+      "width": [
+        "690:666",
+        0
+      ],
+      "height": [
+        "690:667",
+        0
+      ]
+    },
+    "class_type": "Flux2Scheduler",
+    "_meta": {
+      "title": "Flux2Scheduler"
+    }
+  },
+  "690:653": {
+    "inputs": {
+      "cfg": [
+        "690:674",
+        0
+      ],
+      "model": [
+        "690:686",
+        0
+      ],
+      "positive": [
+        "690:663:677",
+        0
+      ],
+      "negative": [
+        "690:663:675",
+        0
+      ]
+    },
+    "class_type": "CFGGuider",
+    "_meta": {
+      "title": "CFGGuider"
+    }
+  },
+  "690:654": {
+    "inputs": {
+      "noise": [
+        "690:656",
+        0
+      ],
+      "guider": [
+        "690:653",
+        0
+      ],
+      "sampler": [
+        "690:651",
+        0
+      ],
+      "sigmas": [
+        "690:652",
+        0
+      ],
+      "latent_image": [
+        "690:661",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  },
+  "690:655": {
+    "inputs": {
+      "samples": [
+        "690:654",
+        0
+      ],
+      "vae": [
+        "690:660",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "690:656": {
+    "inputs": {
+      "noise_seed": [
+        "690:664",
+        0
+      ]
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "690:657": {
+    "inputs": {
+      "unet_name": "flux-2-klein-base-9b-fp8.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "690:658": {
+    "inputs": {
+      "clip_name": "qwen_3_8b_fp8mixed.safetensors",
+      "type": "flux2",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Load CLIP"
+    }
+  },
+  "690:659": {
+    "inputs": {
+      "text": [
+        "690:671",
+        0
+      ],
+      "clip": [
+        "690:686",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "690:660": {
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "690:661": {
+    "inputs": {
+      "width": [
+        "690:666",
+        0
+      ],
+      "height": [
+        "690:667",
+        0
+      ],
+      "batch_size": 1
+    },
+    "class_type": "EmptyFlux2LatentImage",
+    "_meta": {
+      "title": "Empty Flux 2 Latent"
+    }
+  },
+  "690:662": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "megapixels": 1,
+      "resolution_steps": 1,
+      "image": [
+        "691",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {
+      "title": "ImageScaleToTotalPixels"
+    }
+  },
+  "690:663:675": {
+    "inputs": {
+      "conditioning": [
+        "690:673",
+        0
+      ],
+      "latent": [
+        "690:663:676",
+        0
+      ]
+    },
+    "class_type": "ReferenceLatent",
+    "_meta": {
+      "title": "ReferenceLatent"
+    }
+  },
+  "690:663:676": {
+    "inputs": {
+      "pixels": [
+        "690:662",
+        0
+      ],
+      "vae": [
+        "690:660",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "690:663:677": {
+    "inputs": {
+      "conditioning": [
+        "690:659",
+        0
+      ],
+      "latent": [
+        "690:663:676",
+        0
+      ]
+    },
+    "class_type": "ReferenceLatent",
+    "_meta": {
+      "title": "ReferenceLatent"
+    }
+  },
+  "690:664": {
+    "inputs": {
+      "value": -502940342766070
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "seed"
+    }
+  },
+  "690:665": {
+    "inputs": {
+      "value": 20
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "steps"
+    }
+  },
+  "690:666": {
+    "inputs": {
+      "value": 1024
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "width"
+    }
+  },
+  "690:667": {
+    "inputs": {
+      "value": 1024
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "height"
+    }
+  },
+  "690:668": {
+    "inputs": {
+      "seed": [
+        "690:664",
+        0
+      ],
+      "steps": [
+        "690:665",
+        0
+      ],
+      "model": [
+        "690:670",
+        0
+      ],
+      "author": [
+        "690:669",
+        0
+      ],
+      "output_path": "[time(%Y-%m-%d)]",
+      "file_prefix": "[time(%Y%m%d_%H%M%S)]_param",
+      "wrap_width": 60,
+      "font_family": "Arial",
+      "font_size": 36,
+      "dark_mode": false,
+      "save_yaml": true,
+      "prompt": [
+        "690:671",
+        0
+      ],
+      "negative_prompt": "",
+      "additional_text": ""
+    },
+    "class_type": "SaveParamsSVG",
+    "_meta": {
+      "title": "Save Params as SVG"
+    }
+  },
+  "690:669": {
+    "inputs": {
+      "value": "ramy"
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "author"
+    }
+  },
+  "690:670": {
+    "inputs": {
+      "value": "FLUX.2 Image-to-Image"
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "model"
+    }
+  },
+  "690:671": {
+    "inputs": {
+      "prompt": [
+        "693",
+        0
+      ]
+    },
+    "class_type": "CR Prompt Text",
+    "_meta": {
+      "title": "⚙️ CR Prompt Text"
+    }
+  },
+  "690:672": {
+    "inputs": {
+      "image": [
+        "690:662",
+        0
+      ]
+    },
+    "class_type": "GetImageSize",
+    "_meta": {
+      "title": "Get Image Size"
+    }
+  },
+  "690:673": {
+    "inputs": {
+      "text": [
+        "690:697",
+        0
+      ],
+      "clip": [
+        "690:686",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "690:674": {
+    "inputs": {
+      "value": 2.5
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "cfg"
+    }
+  },
+  "690:686": {
+    "inputs": {
+      "lora_name": "FLUX.2_9b\\torzev.safetensors",
+      "strength_model": 0.5,
+      "strength_clip": 0.5,
+      "model": [
+        "690:657",
+        0
+      ],
+      "clip": [
+        "690:658",
+        0
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "Load LoRA (Model and CLIP)"
+    }
+  },
+  "690:696": {
+    "inputs": {
+      "text": "",
+      "prefix": "Select the prefix add to the text",
+      "subject": "👤Select the subject add to the text",
+      "action": "🎬Select the action add to the text",
+      "clothes": "👚Select the clothes add to the text",
+      "environment": "☀️Select the illumination environment add to the text",
+      "background": "🎞️Select the background add to the text",
+      "nsfw": "🔞Select the nsfw add to the text"
+    },
+    "class_type": "easy prompt",
+    "_meta": {
+      "title": "Prompt"
+    }
+  },
+  "690:697": {
+    "inputs": {
+      "prompt": [
+        "698",
+        0
+      ]
+    },
+    "class_type": "CR Prompt Text",
+    "_meta": {
+      "title": "⚙️ CR Prompt Text"
+    }
+  }
+}

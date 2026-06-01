@@ -1,0 +1,548 @@
+{
+  "576": {
+    "inputs": {
+      "filename_prefix": "2026-05-31/20260531_234714_output",
+      "images": [
+        "577:344",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "578": {
+    "inputs": {
+      "image": "Screenshot 2026-05-11 000749 (1).png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "579": {
+    "inputs": {
+      "value": "Transform picture 1 into a dark authoritarian dystopian city while preserving the main pyramidal building shape, stepped massing, aerial perspective, and surrounding urban layout from the screenshot. The central stepped pyramid becomes the Ministry of Truth from George Orwell’s 1984, a monumental pale concrete government building dominating the city. Change the atmosphere to match picture 2: stormy sky, dark blue-grey lighting, heavy fog, smoke, low visibility, wet reflective streets, deep shadows, distant lightning, militarized totalitarian city mood. Surround the pyramid with dense brutalist city blocks, black concrete towers, government buildings, searchlights, surveillance drones, red propaganda banners, tiny faceless citizens, and streets fading into mist. The scene should feel oppressive, monumental, cold, and controlled, like a near-future Orwellian surveillance capital. Style: semi-realistic cinematic matte painting, realistic concrete texture, atmospheric depth, desaturated blue-grey and black color palette, subtle red accents, grainy film still quality, authoritarian architecture, serious dystopian mood, not clean, not bright, not colorful."
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "String (Multiline)"
+    }
+  },
+  "580": {
+    "inputs": {
+      "image": "a1035631f2d13769362707d01c651f04.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "581": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "upscale_method": "nearest-exact",
+      "keep_proportion": "stretch",
+      "pad_color": "0, 0, 0",
+      "crop_position": "center",
+      "divisible_by": 2,
+      "device": "cpu",
+      "image": [
+        "578",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJv2",
+    "_meta": {
+      "title": "Resize Image v2"
+    }
+  },
+  "582": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "upscale_method": "nearest-exact",
+      "keep_proportion": "stretch",
+      "pad_color": "0, 0, 0",
+      "crop_position": "center",
+      "divisible_by": 2,
+      "device": "cpu",
+      "image": [
+        "580",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJv2",
+    "_meta": {
+      "title": "Resize Image v2"
+    }
+  },
+  "577:340": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
+  },
+  "577:341": {
+    "inputs": {
+      "steps": [
+        "577:354",
+        0
+      ],
+      "width": [
+        "577:355",
+        0
+      ],
+      "height": [
+        "577:356",
+        0
+      ]
+    },
+    "class_type": "Flux2Scheduler",
+    "_meta": {
+      "title": "Flux2Scheduler"
+    }
+  },
+  "577:342": {
+    "inputs": {
+      "cfg": [
+        "577:553",
+        0
+      ],
+      "model": [
+        "577:583",
+        0
+      ],
+      "positive": [
+        "577:571:570",
+        0
+      ],
+      "negative": [
+        "577:571:568",
+        0
+      ]
+    },
+    "class_type": "CFGGuider",
+    "_meta": {
+      "title": "CFGGuider"
+    }
+  },
+  "577:343": {
+    "inputs": {
+      "noise": [
+        "577:345",
+        0
+      ],
+      "guider": [
+        "577:342",
+        0
+      ],
+      "sampler": [
+        "577:340",
+        0
+      ],
+      "sigmas": [
+        "577:341",
+        0
+      ],
+      "latent_image": [
+        "577:350",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  },
+  "577:344": {
+    "inputs": {
+      "samples": [
+        "577:343",
+        0
+      ],
+      "vae": [
+        "577:349",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "577:345": {
+    "inputs": {
+      "noise_seed": [
+        "577:353",
+        0
+      ]
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "577:346": {
+    "inputs": {
+      "unet_name": "flux-2-klein-base-9b-fp8.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "577:347": {
+    "inputs": {
+      "clip_name": "qwen_3_8b_fp8mixed.safetensors",
+      "type": "flux2",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Load CLIP"
+    }
+  },
+  "577:348": {
+    "inputs": {
+      "text": [
+        "577:361",
+        0
+      ],
+      "clip": [
+        "577:583",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "577:349": {
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "577:350": {
+    "inputs": {
+      "width": [
+        "577:355",
+        0
+      ],
+      "height": [
+        "577:356",
+        0
+      ],
+      "batch_size": 1
+    },
+    "class_type": "EmptyFlux2LatentImage",
+    "_meta": {
+      "title": "Empty Flux 2 Latent"
+    }
+  },
+  "577:351": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "megapixels": 1,
+      "resolution_steps": 1,
+      "image": [
+        "581",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {
+      "title": "ImageScaleToTotalPixels"
+    }
+  },
+  "577:352:337": {
+    "inputs": {
+      "conditioning": [
+        "577:410",
+        0
+      ],
+      "latent": [
+        "577:352:338",
+        0
+      ]
+    },
+    "class_type": "ReferenceLatent",
+    "_meta": {
+      "title": "ReferenceLatent"
+    }
+  },
+  "577:352:338": {
+    "inputs": {
+      "pixels": [
+        "577:351",
+        0
+      ],
+      "vae": [
+        "577:349",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "577:352:339": {
+    "inputs": {
+      "conditioning": [
+        "577:348",
+        0
+      ],
+      "latent": [
+        "577:352:338",
+        0
+      ]
+    },
+    "class_type": "ReferenceLatent",
+    "_meta": {
+      "title": "ReferenceLatent"
+    }
+  },
+  "577:353": {
+    "inputs": {
+      "value": -779337405950610
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "seed"
+    }
+  },
+  "577:354": {
+    "inputs": {
+      "value": 20
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "steps"
+    }
+  },
+  "577:355": {
+    "inputs": {
+      "value": 1024
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "width"
+    }
+  },
+  "577:356": {
+    "inputs": {
+      "value": 1024
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "height"
+    }
+  },
+  "577:357": {
+    "inputs": {
+      "seed": [
+        "577:353",
+        0
+      ],
+      "steps": [
+        "577:354",
+        0
+      ],
+      "model": [
+        "577:359",
+        0
+      ],
+      "author": [
+        "577:358",
+        0
+      ],
+      "output_path": "[time(%Y-%m-%d)]",
+      "file_prefix": "[time(%Y%m%d_%H%M%S)]_param",
+      "wrap_width": 60,
+      "font_family": "Arial",
+      "font_size": 36,
+      "dark_mode": false,
+      "save_yaml": true,
+      "prompt": [
+        "577:361",
+        0
+      ],
+      "negative_prompt": "",
+      "additional_text": ""
+    },
+    "class_type": "SaveParamsSVG",
+    "_meta": {
+      "title": "Save Params as SVG"
+    }
+  },
+  "577:358": {
+    "inputs": {
+      "value": "James"
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "author"
+    }
+  },
+  "577:359": {
+    "inputs": {
+      "value": "FLUX.2 Klein Multi-image"
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "model"
+    }
+  },
+  "577:361": {
+    "inputs": {
+      "prompt": [
+        "579",
+        0
+      ]
+    },
+    "class_type": "CR Prompt Text",
+    "_meta": {
+      "title": "⚙️ CR Prompt Text"
+    }
+  },
+  "577:365": {
+    "inputs": {
+      "image": [
+        "577:351",
+        0
+      ]
+    },
+    "class_type": "GetImageSize",
+    "_meta": {
+      "title": "Get Image Size"
+    }
+  },
+  "577:410": {
+    "inputs": {
+      "text": "prompt",
+      "clip": [
+        "577:583",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "577:553": {
+    "inputs": {
+      "value": 2.5
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "cfg"
+    }
+  },
+  "577:567": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "megapixels": 1,
+      "resolution_steps": 1,
+      "image": [
+        "582",
+        0
+      ]
+    },
+    "class_type": "ImageScaleToTotalPixels",
+    "_meta": {
+      "title": "ImageScaleToTotalPixels"
+    }
+  },
+  "577:571:568": {
+    "inputs": {
+      "conditioning": [
+        "577:352:337",
+        0
+      ],
+      "latent": [
+        "577:571:569",
+        0
+      ]
+    },
+    "class_type": "ReferenceLatent",
+    "_meta": {
+      "title": "ReferenceLatent"
+    }
+  },
+  "577:571:569": {
+    "inputs": {
+      "pixels": [
+        "577:567",
+        0
+      ],
+      "vae": [
+        "577:349",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "577:571:570": {
+    "inputs": {
+      "conditioning": [
+        "577:352:339",
+        0
+      ],
+      "latent": [
+        "577:571:569",
+        0
+      ]
+    },
+    "class_type": "ReferenceLatent",
+    "_meta": {
+      "title": "ReferenceLatent"
+    }
+  },
+  "577:575": {
+    "inputs": {
+      "rm_nearest": 0.08,
+      "rm_background": 0,
+      "boost": "disable",
+      "resolution": 1024
+    },
+    "class_type": "LeReS-DepthMapPreprocessor",
+    "_meta": {
+      "title": "LeReS Depth Map (enable boost for leres++)"
+    }
+  },
+  "577:583": {
+    "inputs": {
+      "lora_name": "FLUX.2_9b\\torzev.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "577:346",
+        0
+      ],
+      "clip": [
+        "577:347",
+        0
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "Load LoRA (Model and CLIP)"
+    }
+  }
+}
