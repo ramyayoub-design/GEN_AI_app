@@ -4,9 +4,13 @@ const Magazine = (() => {
 
   // ---- State ----
   let slots         = [];
-  let currentLayout = 'landscape-grid';
+  let currentLayout = 'cut4';
   let pendingSlotId = null;
   let zoom          = 1.0;
+
+  // Comic layouts delegate to ComicPanels
+  const COMIC_LAYOUTS = new Set(['cut3','cut4','cut5','cut6']);
+  function isComic(layout) { return COMIC_LAYOUTS.has(layout); }
 
   // ---- Layout definitions (900×700 canvas) ----
   const LAYOUTS = {
@@ -46,6 +50,8 @@ const Magazine = (() => {
 
   // ---- Init ----
   function init() {
+    ComicPanels.init('cut4');
+    ComicBubbles.init();
     initSlots(2);
     render();
     initLayoutPicker();
@@ -57,10 +63,36 @@ const Magazine = (() => {
         document.querySelectorAll('.mag-layout-thumb').forEach(t => t.classList.remove('active'));
         thumb.classList.add('active');
         currentLayout = thumb.dataset.layout;
-        const images = slots.map(s => s.imageUrl).filter(Boolean);
-        initSlots(Math.max(2, images.length));
-        images.forEach((url, i) => { if (slots[i]) slots[i].imageUrl = url; });
-        render();
+
+        if (isComic(currentLayout)) {
+          // Reset canvas styles before comic render takes over
+          const canvas = document.getElementById('magazineCanvas');
+          if (canvas) {
+            canvas.style.backgroundImage = 'none';
+            canvas.style.minWidth = '';
+          }
+          // Hide bubble section until a panel is selected
+          const bs = document.getElementById('comicBubbleSection');
+          if (bs) bs.style.display = 'none';
+          // Show editor placeholder
+          const ed = document.getElementById('magEditor');
+          if (ed) ed.innerHTML = `<p class="mag-no-sel">Click a comic panel to edit</p>`;
+          ComicPanels.setLayout(currentLayout);
+        } else {
+          // Restore slot-mode canvas styles
+          const canvas = document.getElementById('magazineCanvas');
+          if (canvas) {
+            canvas.style.height = '';
+            canvas.style.minHeight = '';
+            canvas.style.backgroundImage = '';
+          }
+          const bs = document.getElementById('comicBubbleSection');
+          if (bs) bs.style.display = 'none';
+          const images = slots.map(s => s.imageUrl).filter(Boolean);
+          initSlots(Math.max(2, images.length));
+          images.forEach((url, i) => { if (slots[i]) slots[i].imageUrl = url; });
+          render();
+        }
       });
     });
   }
@@ -105,12 +137,31 @@ const Magazine = (() => {
   // Exposed for the external "Add Panels" button (Fix 11)
   function addPanelsExternal() { addPanels(2); }
 
-  function clearAll() { initSlots(2); render(); }
+  function clearAll() {
+    if (isComic(currentLayout)) {
+    ComicPanels.init(currentLayout);
+    ComicBubbles.clearAll();
+    ComicPanels.render();
+    return;
+  }
+
+  initSlots(2);
+  render();
+}
 
   // ---- Render ----
   function render() {
+    // Comic layouts delegate to ComicPanels
+    if (isComic(currentLayout)) { ComicPanels.render(); return; }
+
     const canvas = document.getElementById('magazineCanvas');
     if (!canvas) return;
+
+    // Restore slot-mode canvas defaults
+    canvas.style.backgroundImage = '';
+    canvas.style.height    = '';
+    canvas.style.minHeight = '';
+    canvas.style.minWidth  = '';
     canvas.innerHTML = '';
 
     if (slots.length === 0) {

@@ -74,10 +74,23 @@ const ComfyUI = (() => {
         const resp = await fetch(`${baseUrl}/history/${promptId}`);
         if (!resp.ok) continue;
         const history = await resp.json();
+        console.log('Looking for promptId:', promptId);
+        console.log('History keys:', Object.keys(history));
+        console.log('Match found:', !!history[promptId]);
         if (history[promptId]) {
           const outputs = history[promptId].outputs;
           for (const nodeId in outputs) {
             const node = outputs[nodeId];
+
+            // Check for GLB in result array (TRELLIS2 format)
+            if (node.result && node.result.length > 0 && node.result[0]) {
+              const fullPath = node.result[0];
+              const filename = fullPath.split('\\').pop().split('/').pop();
+              if (onProgress) onProgress(100);
+              return `${baseUrl}/view?filename=${encodeURIComponent(filename)}&type=output&subfolder=`;
+            }
+
+            // Fallback: check for gltf key
             if (node.gltf && node.gltf.length > 0) {
               const file = node.gltf[0];
               if (onProgress) onProgress(100);
@@ -162,14 +175,20 @@ const ComfyUI = (() => {
   // ---- IMAGE TO 3D ----
   async function imageTo3D(imageUrl, onProgress) {
     const cfg = Config.get();
+    console.log('imageTo3D called, comfy3dUrl:', cfg.comfy3dUrl);
     const workflow = await loadWorkflow('3D.json');
+    console.log('Workflow loaded');
 
     const filename = await uploadImage(imageUrl, cfg.comfy3dUrl);
+    console.log('Image uploaded as:', filename);
+
     workflow["85"].inputs.image = filename;
     workflow["73"].inputs.seed = Math.floor(Math.random() * 99999);
     workflow["75"].inputs.seed = Math.floor(Math.random() * 99999);
 
     const promptId = await queuePrompt(workflow, cfg.comfy3dUrl);
+    console.log('Prompt queued with ID:', promptId);
+
     return await pollFor3D(promptId, cfg.comfy3dUrl, onProgress);
   }
 

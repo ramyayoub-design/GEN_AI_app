@@ -7,7 +7,8 @@ let multi1File  = null;
 let multi2File  = null;
 let threedFile  = null;
 let generatedImages = [];
-window._currentFilter = '';  // Fix 5: shared filter string
+let lastPromptUsed = '';      // Fix 7: track last prompt for display
+window._currentFilter = '';
 
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', () => {
@@ -49,7 +50,7 @@ function initNav() {
   });
 }
 
-// ---- Mode switching (Fix 8, 9: split-mode for img2img/multi) ----
+// ---- Mode switching — show/hide the three distinct mode panels ----
 function initModes() {
   document.querySelectorAll('.mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -57,19 +58,10 @@ function initModes() {
       btn.classList.add('active');
       currentMode = btn.dataset.mode;
 
-      const inputsCol   = document.getElementById('genInputsCol');
-      const contentArea = document.getElementById('genContentArea');
-      document.querySelectorAll('.input-section').forEach(s => s.classList.remove('active'));
-
-      if (currentMode === 'txt2img') {
-        inputsCol.classList.add('hidden');
-        contentArea.classList.remove('split-mode');
-      } else {
-        inputsCol.classList.remove('hidden');
-        contentArea.classList.add('split-mode');
-        const sec = document.getElementById(`inputSection-${currentMode}`);
-        if (sec) sec.classList.add('active');
-      }
+      // Show the correct mode panel
+      document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active'));
+      const panel = document.getElementById(`panel-${currentMode}`);
+      if (panel) panel.classList.add('active');
 
       const placeholders = {
         txt2img:  'Describe your architectural scene… trigger word torzev is added automatically',
@@ -168,7 +160,9 @@ function setupUpload(zoneId, inputId, previewId, onFile) {
 
 function handleUploadedFile(file, preview, onFile) {
   const url = URL.createObjectURL(file);
-  preview.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;" />`;
+  // For the new full-height column zones, the preview is position:absolute inset:0
+  // Setting innerHTML fills the zone with the image
+  preview.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;" />`;
   onFile(file);
 }
 
@@ -194,6 +188,8 @@ async function runGenerate() {
   const style      = document.getElementById('styleSelect').value;
   const fullPrompt = `${prompt}, ${style}`;
 
+  lastPromptUsed = fullPrompt; // Fix 7: store before generating
+
   if (currentMode === 'txt2img') {
     showLoading('Generating image…');
     try {
@@ -202,6 +198,7 @@ async function runGenerate() {
       setStatus('READY');
     } catch (e) { alert('Generation failed: ' + e.message); setStatus('ERROR'); }
     hideLoading();
+    document.getElementById('mainPrompt').value = '';
 
   } else if (currentMode === 'img2img') {
     if (!img2imgFile) { alert('Please upload an input image.'); return; }
@@ -213,6 +210,7 @@ async function runGenerate() {
       setStatus('READY');
     } catch (e) { alert('Generation failed: ' + e.message); setStatus('ERROR'); }
     hideLoading();
+    document.getElementById('mainPrompt').value = '';
 
   } else if (currentMode === 'multiimg') {
     if (!multi1File || !multi2File) { alert('Please upload both reference images.'); return; }
@@ -225,6 +223,7 @@ async function runGenerate() {
       setStatus('READY');
     } catch (e) { alert('Generation failed: ' + e.message); setStatus('ERROR'); }
     hideLoading();
+    document.getElementById('mainPrompt').value = '';
   }
 }
 
@@ -241,33 +240,108 @@ async function runExpandPrompt() {
   hideLoading();
 }
 
-// ---- Gallery (Fix 2, 7) ----
+// ---- Gallery — mode-aware output routing ----
 function addToGallery(imageUrl) {
   generatedImages.unshift(imageUrl);
-  const largePreview = document.getElementById('largePreview');
-  if (largePreview) {
-    largePreview.style.minHeight = '500px';
-    largePreview.style.height = '500px';
-    largePreview.innerHTML = `<img src="${imageUrl}" style="width:100%; height:100%; object-fit:contain;" />`;
-  }
+  updateMagLibrary();
 
-  const promptText = document.getElementById('mainPrompt')?.value || '';
+  if (currentMode === 'txt2img' || !currentMode) {
+    // Screen 1: update square large preview
+    const largePreview = document.getElementById('largePreview');
+    if (largePreview) {
+      largePreview.innerHTML = `
+        <div style="position:relative; width:100%; height:100%;">
+          <img src="${imageUrl}" style="width:100%; height:100%; object-fit:contain; display:block;" />
+          <div class="output-cell-actions">
+            <button class="cell-btn" id="largeAddMag">+Mag</button>
+            <button class="cell-btn" id="largeSend3D">→3D</button>
+            <a class="cell-btn" href="${imageUrl}" download="flatdream.png">↓</a>
+          </div>
+        </div>`;
+      document.getElementById('largeAddMag')?.addEventListener('click', () => {
+        Magazine.addImage(imageUrl);
+        updateMagLibrary();
+        document.querySelector('[data-tab="magazine"]').click();
+      });
+      document.getElementById('largeSend3D')?.addEventListener('click', () => {
+        document.getElementById('threedPreview').innerHTML =
+          `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;" />`;
+        fetch(imageUrl).then(r => r.blob()).then(blob => {
+          threedFile = new File([blob], 'selected.png', { type: 'image/png' });
+        });
+        document.querySelector('[data-tab="threed"]').click();
+      });
+    }
+    // Show prompt used beneath
+    const lastPromptEl = document.getElementById('lastPromptDisplay');
+    if (lastPromptEl) lastPromptEl.textContent = lastPromptUsed;
+    // Add 40px thumbnail to history strip
+    addThumbnail(imageUrl);
+    const count = document.getElementById('outputCount');
+    if (count) count.textContent = generatedImages.length;
 
-  const chatHistory = document.getElementById('chatHistory');
-  if (chatHistory && promptText) {
-    const entry = document.createElement('div');
-    entry.className = 'chat-entry';
-    entry.innerHTML = `
-      <div class="chat-prompt-bubble">${promptText}</div>
-      <div class="chat-image-result">
-        <img src="${imageUrl}" class="chat-result-img" />
-      </div>
-    `;
-    chatHistory.appendChild(entry);
-    chatHistory.scrollTop = chatHistory.scrollHeight;
+  } else if (currentMode === 'img2img') {
+    // Screen 2: fill right column output with hover actions
+    const out = document.getElementById('img2imgOutput');
+    if (out) {
+      out.innerHTML = `
+        <div style="position:relative; width:100%; height:100%;">
+          <img src="${imageUrl}" style="width:100%; height:100%; object-fit:contain; display:block;" />
+          <div class="output-cell-actions">
+            <button class="cell-btn" id="img2imgAddMag">+Mag</button>
+            <button class="cell-btn" id="img2imgSend3D">→3D</button>
+            <a class="cell-btn" href="${imageUrl}" download="flatdream.png">↓</a>
+          </div>
+        </div>`;
+      document.getElementById('img2imgAddMag')?.addEventListener('click', () => {
+        Magazine.addImage(imageUrl);
+        updateMagLibrary();
+        document.querySelector('[data-tab="magazine"]').click();
+      });
+      document.getElementById('img2imgSend3D')?.addEventListener('click', () => {
+        document.getElementById('threedPreview').innerHTML =
+          `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;" />`;
+        fetch(imageUrl).then(r => r.blob()).then(blob => {
+          threedFile = new File([blob], 'selected.png', { type: 'image/png' });
+        });
+        document.querySelector('[data-tab="threed"]').click();
+      });
+    }
+
+  } else if (currentMode === 'multiimg') {
+    // Screen 3: fill right column output with hover actions
+    const out = document.getElementById('multiimgOutput');
+    if (out) {
+      out.innerHTML = `
+        <div style="position:relative; width:100%; height:100%;">
+          <img src="${imageUrl}" style="width:100%; height:100%; object-fit:contain; display:block;" />
+          <div class="output-cell-actions">
+            <button class="cell-btn" id="multiAddMag">+Mag</button>
+            <button class="cell-btn" id="multiSend3D">→3D</button>
+            <a class="cell-btn" href="${imageUrl}" download="flatdream.png">↓</a>
+          </div>
+        </div>`;
+      document.getElementById('multiAddMag')?.addEventListener('click', () => {
+        Magazine.addImage(imageUrl);
+        updateMagLibrary();
+        document.querySelector('[data-tab="magazine"]').click();
+      });
+      document.getElementById('multiSend3D')?.addEventListener('click', () => {
+        document.getElementById('threedPreview').innerHTML =
+          `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;" />`;
+        fetch(imageUrl).then(r => r.blob()).then(blob => {
+          threedFile = new File([blob], 'selected.png', { type: 'image/png' });
+        });
+        document.querySelector('[data-tab="threed"]').click();
+      });
+    }
   }
-  const grid  = document.getElementById('outputGrid');
-  const count = document.getElementById('outputCount');
+}
+
+// ---- Add 40px thumbnail to the history strip (txt2img only) ----
+function addThumbnail(imageUrl) {
+  const grid = document.getElementById('outputGrid');
+  if (!grid) return;
   const empty = grid.querySelector('.output-empty');
   if (empty) empty.remove();
 
@@ -276,15 +350,13 @@ function addToGallery(imageUrl) {
   const img = document.createElement('img');
   img.src = imageUrl;
   img.className = 'output-img';
-  // Fix 5: apply current filter to new image
   if (window._currentFilter) img.style.filter = window._currentFilter;
 
-  cell.innerHTML = `
-    <div class="output-cell-actions">
-      <button class="cell-btn" title="Add to Magazine">+Mag</button>
-      <button class="cell-btn" title="Send to 3D">→3D</button>
-      <a class="cell-btn" href="${imageUrl}" download="flatdream.png" title="Download">↓</a>
-    </div>`;
+  cell.innerHTML = `<div class="output-cell-actions">
+    <button class="cell-btn" title="Add to Magazine">+M</button>
+    <button class="cell-btn" title="Send to 3D">3D</button>
+    <a class="cell-btn" href="${imageUrl}" download="flatdream.png" title="Download">↓</a>
+  </div>`;
   cell.insertBefore(img, cell.firstChild);
 
   cell.querySelector('[title="Add to Magazine"]').addEventListener('click', e => {
@@ -304,8 +376,6 @@ function addToGallery(imageUrl) {
   });
 
   grid.insertBefore(cell, grid.firstChild);
-  count.textContent = `${generatedImages.length} image${generatedImages.length !== 1 ? 's' : ''}`;
-  updateMagLibrary();
 }
 
 // ---- Magazine ----
@@ -317,7 +387,16 @@ function initMagazine() {
   // Fix 11: zoom and add-panels buttons
   document.getElementById('magZoomIn').addEventListener('click',      () => Magazine.zoomIn());
   document.getElementById('magZoomOut').addEventListener('click',     () => Magazine.zoomOut());
-  document.getElementById('magAddPanelsBtn').addEventListener('click', () => Magazine.addPanelsExternal());
+  document.getElementById('magAddPanelsBtn')?.addEventListener('click', () => Magazine.addPanelsExternal());
+
+  // Comic bubble buttons
+  document.getElementById('comicAddBubbleBtn').addEventListener('click', () => {
+    const p = ComicPanels.getSelected();
+    ComicBubbles.addBubbleForPanel(p ? p.id : null);
+  });
+  document.getElementById('comicClearBubblesBtn').addEventListener('click', () => {
+    if (confirm('Clear all speech bubbles?')) ComicBubbles.clearAll();
+  });
 }
 
 // Fix 7: library thumbnails with hover actions
@@ -360,46 +439,168 @@ function updateMagLibrary() {
 }
 
 // ---- 3D (Fix 4: no showLoading — overlay is local to generate tab) ----
-function init3D() {
-  document.getElementById('threedGenBtn').addEventListener('click', run3D);
+
+// ---- 3D ----
+
+function findGLBUrlFromOutputs(outputs, comfy3dUrl) {
+  if (!outputs) return null;
+
+  for (const nodeId in outputs) {
+    const node = outputs[nodeId];
+
+    const candidates = [];
+
+    if (Array.isArray(node.result)) candidates.push(...node.result);
+    if (Array.isArray(node.mesh)) candidates.push(...node.mesh);
+    if (Array.isArray(node.meshes)) candidates.push(...node.meshes);
+    if (Array.isArray(node.gltf)) candidates.push(...node.gltf);
+    if (Array.isArray(node.glb)) candidates.push(...node.glb);
+
+    for (const item of candidates) {
+      let filename = null;
+      let subfolder = '';
+
+      if (typeof item === 'string') {
+        filename = item.split('\\').pop().split('/').pop();
+      } else if (item && typeof item === 'object') {
+        filename = item.filename || item.name || null;
+        subfolder = item.subfolder || '';
+      }
+
+      if (filename && filename.toLowerCase().endsWith('.glb')) {
+        return `${comfy3dUrl}/view?filename=${encodeURIComponent(filename)}&type=output&subfolder=${encodeURIComponent(subfolder)}`;
+      }
+    }
+  }
+
+  return null;
 }
 
 async function run3D() {
-  if (!threedFile) { alert('Please select or upload an image first.'); return; }
-  const dataUrl        = await fileToDataURL(threedFile);
+  if (!threedFile) {
+    alert('Please select or upload an image first.');
+    return;
+  }
+
+  const cfg = Config.get();
+  const dataUrl = await fileToDataURL(threedFile);
   const statusBillboard = document.getElementById('threedStatusBillboard');
-  const progress        = document.getElementById('threedProgress');
-  const bar             = document.getElementById('threedProgressBar');
-  const label           = document.getElementById('threedProgressLabel');
+  const bar = document.getElementById('threedProgressBar');
+  const label = document.getElementById('threedProgressLabel');
+  const progress = document.getElementById('threedProgress');
 
   statusBillboard.textContent = 'PROCESSING';
   progress.style.display = 'block';
+  bar.style.width = '10%';
+  label.textContent = 'Uploading image…';
 
   try {
-    const glbUrl = await ComfyUI.imageTo3D(dataUrl, p => {
-      bar.style.width     = p + '%';
-      label.textContent   = `Processing… ${Math.round(p)}%`;
+    const blob = await fetch(dataUrl).then(r => r.blob());
+    const filename = `flatdream_${Date.now()}.png`;
+    const formData = new FormData();
+    formData.append('image', blob, filename);
+    formData.append('type', 'input');
+    formData.append('overwrite', 'true');
+
+    const uploadResp = await fetch(`${cfg.comfy3dUrl}/upload/image`, {
+      method: 'POST',
+      body: formData
     });
 
-    const dlBtn = document.getElementById('threedDownloadBtn');
-    dlBtn.href           = glbUrl;
-    dlBtn.style.display  = 'block';
-
-    if (window.ThreeDViewer) {
-      window.ThreeDViewer.loadGLB(glbUrl);
-    } else {
-      document.getElementById('threedPreviewArea').innerHTML = `
-        <div style="text-align:center;padding:20px;">
-          <div style="font-size:20px;letter-spacing:2px;text-transform:uppercase;color:#1D9E75;margin-bottom:8px;font-weight:700;">✓ 3D MESH READY</div>
-          <a href="${glbUrl}" download class="btn-generate" style="display:inline-block;text-decoration:none;">↓ Download GLB</a>
-        </div>`;
+    if (!uploadResp.ok) {
+      throw new Error(`Image upload failed: ${uploadResp.status}`);
     }
+
+    const uploadData = await uploadResp.json();
+    bar.style.width = '20%';
+
+    const workflow = await fetch('./workflows/3D.json').then(r => r.json());
+
+    workflow["85"].inputs.image = uploadData.name;
+    workflow["73"].inputs.seed = Math.floor(Math.random() * 99999);
+    workflow["75"].inputs.seed = Math.floor(Math.random() * 99999);
+
+    const queueResp = await fetch(`${cfg.comfy3dUrl}/prompt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: workflow })
+    });
+
+    if (!queueResp.ok) {
+      throw new Error(`3D queue failed: ${queueResp.status}`);
+    }
+
+    const queueData = await queueResp.json();
+    const promptId = queueData.prompt_id;
+
+    bar.style.width = '30%';
+    label.textContent = 'Processing 3D mesh…';
+
+    let glbUrl = null;
+
+    for (let i = 0; i < 300; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      bar.style.width = Math.min(90, 30 + i * 2) + '%';
+
+      const histResp = await fetch(`${cfg.comfy3dUrl}/history/${promptId}`);
+      if (!histResp.ok) continue;
+
+      const hist = await histResp.json();
+      const job = hist[promptId];
+
+      if (job && job.status && job.status.completed) {
+        glbUrl = findGLBUrlFromOutputs(job.outputs, cfg.comfy3dUrl);
+
+        console.log('[3D] Completed job outputs:', job.outputs);
+        console.log('[3D] Final GLB URL:', glbUrl);
+
+        break;
+      }
+    }
+
+    if (!glbUrl) {
+      throw new Error('Timed out waiting for 3D mesh or no GLB found in outputs');
+    }
+
+    bar.style.width = '100%';
+    label.textContent = 'Done!';
+
+    const dlBtn = document.getElementById('threedDownloadBtn');
+    if (dlBtn) {
+      dlBtn.href = glbUrl;
+      dlBtn.style.display = 'block';
+      dlBtn.setAttribute('download', 'model.glb');
+    }
+
+    // IMPORTANT:
+    // Do not rewrite threedPreviewArea.innerHTML here.
+    // Rewriting it destroys the canvas needed by the Three.js viewer.
     statusBillboard.textContent = 'READY';
+
+    const tabBtn = document.querySelector('[data-tab="threed"]');
+    if (tabBtn) tabBtn.click();
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (window.Viewer3D) {
+          window.Viewer3D.loadGLB(glbUrl);
+        } else {
+          console.error('[3D] window.Viewer3D is missing');
+        }
+      });
+    });
+
   } catch (e) {
-    alert('3D generation failed: ' + e.message);
+    alert('3D failed: ' + e.message);
     statusBillboard.textContent = 'ERROR';
+    console.error('[3D] Failed:', e);
+  } finally {
+    progress.style.display = 'none';
   }
-  progress.style.display = 'none';
+}
+
+function init3D() {
+  document.getElementById('threedGenBtn').addEventListener('click', run3D);
 }
 
 // ---- LoRA strength slider ----
