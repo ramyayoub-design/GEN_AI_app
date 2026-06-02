@@ -50,6 +50,45 @@ function initNav() {
   });
 }
 
+// ---- Apply mode-specific generation defaults ----
+function applyModeDefaults(mode) {
+  const defaults = {
+    txt2img: { width: 1024, height: 1024, steps: 20, seed: 1, cfg: 5, loraStrength: 1, negativePrompt: '' },
+    img2img: { width: 1024, height: 1024, steps: 20, seed: 1, cfg: 2.5, loraStrength: 0.5, negativePrompt: '' },
+    multiimg: { width: 1024, height: 1024, steps: 20, seed: 1, cfg: 2.5, loraStrength: 1, negativePrompt: '' }
+  };
+  const d = defaults[mode] || defaults.txt2img;
+
+  // Update Generation Settings inputs
+  const genWidth = document.getElementById('genWidth');
+  const genHeight = document.getElementById('genHeight');
+  const genSteps = document.getElementById('genSteps');
+  const genSeed = document.getElementById('genSeed');
+  const genCfgSlider = document.getElementById('genCfgSlider');
+  const genCfgVal = document.getElementById('genCfgVal');
+  const genNegativePrompt = document.getElementById('genNegativePrompt');
+
+  if (genWidth) genWidth.value = d.width;
+  if (genHeight) genHeight.value = d.height;
+  if (genSteps) genSteps.value = d.steps;
+  if (genSeed) genSeed.value = d.seed;
+
+  if (genCfgSlider) {
+    genCfgSlider.value = d.cfg;
+    if (genCfgVal) genCfgVal.textContent = d.cfg;
+  }
+
+  if (genNegativePrompt) genNegativePrompt.value = d.negativePrompt;
+
+  // Update LoRA Strength slider and label
+  const loraSlider = document.getElementById('loraStrengthSlider');
+  const loraLabel = document.getElementById('loraStrengthLabel');
+  if (loraSlider) {
+    loraSlider.value = d.loraStrength;
+    if (loraLabel) loraLabel.textContent = `strength ${parseFloat(d.loraStrength).toFixed(2)}`;
+  }
+}
+
 // ---- Mode switching — show/hide the three distinct mode panels ----
 function initModes() {
   document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -72,6 +111,9 @@ function initModes() {
 
       const labels = { txt2img: 'TEXT → IMAGE', img2img: 'IMAGE → IMAGE', multiimg: 'MULTI REFERENCE' };
       document.getElementById('modeBillboard').textContent = labels[currentMode];
+
+      // Apply mode defaults to generation settings
+      applyModeDefaults(currentMode);
     });
   });
 }
@@ -175,6 +217,27 @@ function fileToDataURL(file) {
   });
 }
 
+// ---- Generation Settings ----
+function getGenerationSettings() {
+  const width = parseInt(document.getElementById('genWidth')?.value || 1024);
+  const height = parseInt(document.getElementById('genHeight')?.value || 1024);
+  const steps = parseInt(document.getElementById('genSteps')?.value || 20);
+  const seed = document.getElementById('genSeed')?.value.trim() === '' ? 1 : parseInt(document.getElementById('genSeed')?.value || 1);
+  const cfg = parseFloat(document.getElementById('genCfgSlider')?.value || 7);
+  const negativePrompt = document.getElementById('genNegativePrompt')?.value.trim() || '';
+  const loraStrength = parseFloat(document.getElementById('loraStrengthSlider')?.value || 1.0);
+
+  return {
+    width,
+    height,
+    steps,
+    seed,
+    cfg,
+    negativePrompt,
+    loraStrength
+  };
+}
+
 // ---- Generate ----
 function initGenerate() {
   document.getElementById('mainGenBtn').addEventListener('click', runGenerate);
@@ -185,6 +248,8 @@ async function runGenerate() {
   const prompt = document.getElementById('mainPrompt').value.trim();
   if (!prompt) { alert('Please enter a prompt.'); return; }
 
+  const genSettings = getGenerationSettings();
+
   const style      = document.getElementById('styleSelect').value;
   const fullPrompt = `${prompt}, ${style}`;
 
@@ -193,7 +258,7 @@ async function runGenerate() {
   if (currentMode === 'txt2img') {
     showLoading('Generating image…');
     try {
-      const url = await ComfyUI.textToImage(fullPrompt, p => updateLoadingProgress(p));
+      const url = await ComfyUI.textToImage(fullPrompt, genSettings, p => updateLoadingProgress(p));
       addToGallery(url);
       setStatus('READY');
     } catch (e) { alert('Generation failed: ' + e.message); setStatus('ERROR'); }
@@ -205,7 +270,7 @@ async function runGenerate() {
     const dataUrl = await fileToDataURL(img2imgFile);
     showLoading('Transforming image…');
     try {
-      const url = await ComfyUI.imageToImage(fullPrompt, dataUrl, p => updateLoadingProgress(p));
+      const url = await ComfyUI.imageToImage(fullPrompt, dataUrl, genSettings, p => updateLoadingProgress(p));
       addToGallery(url);
       setStatus('READY');
     } catch (e) { alert('Generation failed: ' + e.message); setStatus('ERROR'); }
@@ -218,7 +283,7 @@ async function runGenerate() {
     const url2 = await fileToDataURL(multi2File);
     showLoading('Combining references…');
     try {
-      const url = await ComfyUI.multiImage(fullPrompt, url1, url2, p => updateLoadingProgress(p));
+      const url = await ComfyUI.multiImage(fullPrompt, url1, url2, genSettings, p => updateLoadingProgress(p));
       addToGallery(url);
       setStatus('READY');
     } catch (e) { alert('Generation failed: ' + e.message); setStatus('ERROR'); }

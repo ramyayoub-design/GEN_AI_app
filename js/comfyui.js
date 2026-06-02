@@ -1,5 +1,113 @@
 const ComfyUI = (() => {
 
+  // ---- Deep copy workflow (avoid mutating original) ----
+  function deepCopyWorkflow(workflow) {
+    return JSON.parse(JSON.stringify(workflow));
+  }
+
+  // ---- Apply generation settings to workflow ----
+  function patchWorkflow(workflow, genSettings, mode) {
+    const defaults = {
+      txt2img: { width: 1024, height: 1024, steps: 20, seed: 1, cfg: 5, loraStrength: 1, negativePrompt: '' },
+      img2img: { width: 1024, height: 1024, steps: 20, seed: 1, cfg: 2.5, loraStrength: 0.5, negativePrompt: '' },
+      multiimg: { width: 1024, height: 1024, steps: 20, seed: 1, cfg: 2.5, loraStrength: 1, negativePrompt: '' }
+    };
+    const modeDefaults = defaults[mode] || defaults.txt2img;
+    const settings = { ...modeDefaults, ...genSettings };
+
+    const patchedNodes = {};
+
+    if (mode === 'txt2img') {
+      // Text to Image patches
+      workflow["709:668"].inputs.value = settings.seed;
+      patchedNodes["709:668"] = { seed: settings.seed };
+
+      workflow["709:669"].inputs.value = settings.steps;
+      patchedNodes["709:669"] = { steps: settings.steps };
+
+      workflow["709:670"].inputs.value = settings.width;
+      patchedNodes["709:670"] = { width: settings.width };
+
+      workflow["709:671"].inputs.value = settings.height;
+      patchedNodes["709:671"] = { height: settings.height };
+
+      workflow["709:675"].inputs.value = settings.cfg;
+      patchedNodes["709:675"] = { cfg: settings.cfg };
+
+      workflow["709:711"].inputs.strength_model = settings.loraStrength;
+      workflow["709:711"].inputs.strength_clip = settings.loraStrength;
+      patchedNodes["709:711"] = { strength_model: settings.loraStrength, strength_clip: settings.loraStrength };
+
+      workflow["709:662"].inputs.text = settings.negativePrompt;
+      patchedNodes["709:662"] = { negativePrompt: settings.negativePrompt };
+
+    } else if (mode === 'img2img') {
+      // Image to Image patches
+      workflow["690:664"].inputs.value = settings.seed;
+      patchedNodes["690:664"] = { seed: settings.seed };
+
+      workflow["690:665"].inputs.value = settings.steps;
+      patchedNodes["690:665"] = { steps: settings.steps };
+
+      workflow["690:666"].inputs.value = settings.width;
+      patchedNodes["690:666"] = { width: settings.width };
+
+      workflow["690:667"].inputs.value = settings.height;
+      patchedNodes["690:667"] = { height: settings.height };
+
+      workflow["690:674"].inputs.value = settings.cfg;
+      patchedNodes["690:674"] = { cfg: settings.cfg };
+
+      workflow["690:686"].inputs.strength_model = settings.loraStrength;
+      workflow["690:686"].inputs.strength_clip = settings.loraStrength;
+      patchedNodes["690:686"] = { strength_model: settings.loraStrength, strength_clip: settings.loraStrength };
+
+      workflow["698"].inputs.value = settings.negativePrompt;
+      patchedNodes["698"] = { negativePrompt: settings.negativePrompt };
+
+      workflow["691"].inputs.width = settings.width;
+      workflow["691"].inputs.height = settings.height;
+      patchedNodes["691"] = { resize_width: settings.width, resize_height: settings.height };
+
+    } else if (mode === 'multiimg') {
+      // Multi Reference patches
+      workflow["577:353"].inputs.value = settings.seed;
+      patchedNodes["577:353"] = { seed: settings.seed };
+
+      workflow["577:354"].inputs.value = settings.steps;
+      patchedNodes["577:354"] = { steps: settings.steps };
+
+      workflow["577:355"].inputs.value = settings.width;
+      patchedNodes["577:355"] = { width: settings.width };
+
+      workflow["577:356"].inputs.value = settings.height;
+      patchedNodes["577:356"] = { height: settings.height };
+
+      workflow["577:553"].inputs.value = settings.cfg;
+      patchedNodes["577:553"] = { cfg: settings.cfg };
+
+      workflow["577:583"].inputs.strength_model = settings.loraStrength;
+      workflow["577:583"].inputs.strength_clip = settings.loraStrength;
+      patchedNodes["577:583"] = { strength_model: settings.loraStrength, strength_clip: settings.loraStrength };
+
+      workflow["577:410"].inputs.text = settings.negativePrompt;
+      patchedNodes["577:410"] = { negativePrompt: settings.negativePrompt };
+
+      workflow["581"].inputs.width = settings.width;
+      workflow["581"].inputs.height = settings.height;
+      patchedNodes["581"] = { resize_width: settings.width, resize_height: settings.height };
+
+      workflow["582"].inputs.width = settings.width;
+      workflow["582"].inputs.height = settings.height;
+      patchedNodes["582"] = { resize_width: settings.width, resize_height: settings.height };
+    }
+
+    console.log('[ComfyUI] Generation Settings:', settings);
+    console.log('[ComfyUI] Patched Nodes:', patchedNodes);
+
+    return workflow;
+  }
+
   async function loadWorkflow(filename) {
     const resp = await fetch(`./workflows/${filename}`);
     if (!resp.ok) throw new Error(`Could not load ${filename}`);
@@ -105,52 +213,45 @@ const ComfyUI = (() => {
   }
 
   // ---- TEXT TO IMAGE ----
-  async function textToImage(prompt, onProgress) {
+  async function textToImage(prompt, genSettings, onProgress) {
     const cfg = Config.get();
-    const workflow = await loadWorkflow('text to image.json');
+    const originalWorkflow = await loadWorkflow('text to image.json');
+    const workflow = deepCopyWorkflow(originalWorkflow);
 
     const fullPrompt = `${cfg.loraTrigger} ${prompt}`;
     workflow["710"].inputs.value = fullPrompt;
-    workflow["709:668"].inputs.value = Math.floor(Math.random() * 2 ** 32);
-    workflow["709:669"].inputs.value = cfg.fluxSteps;
-    workflow["709:670"].inputs.value = cfg.imgWidth;
-    workflow["709:671"].inputs.value = cfg.imgHeight;
-    workflow["709:675"].inputs.value = cfg.fluxCfg;
     workflow["709:711"].inputs.lora_name = cfg.loraName;
-    workflow["709:711"].inputs.strength_model = cfg.loraStrength;
-    workflow["709:711"].inputs.strength_clip = cfg.loraStrength;
+
+    patchWorkflow(workflow, genSettings, 'txt2img');
 
     const promptId = await queuePrompt(workflow, cfg.comfyUrl);
     return await pollForImage(promptId, cfg.comfyUrl, onProgress);
   }
 
   // ---- IMAGE TO IMAGE ----
-  async function imageToImage(prompt, imageUrl, onProgress) {
+  async function imageToImage(prompt, imageUrl, genSettings, onProgress) {
     const cfg = Config.get();
-    const workflow = await loadWorkflow('image to image.json');
+    const originalWorkflow = await loadWorkflow('image to image.json');
+    const workflow = deepCopyWorkflow(originalWorkflow);
 
     const filename = await uploadImage(imageUrl, cfg.comfyUrl);
     const fullPrompt = `${cfg.loraTrigger} ${prompt}`;
 
     workflow["693"].inputs.value = fullPrompt;
     workflow["694"].inputs.image = filename;
-    workflow["690:664"].inputs.value = Math.floor(Math.random() * 2 ** 32);
-    workflow["690:665"].inputs.value = cfg.fluxSteps;
-    workflow["690:666"].inputs.value = cfg.imgWidth;
-    workflow["690:667"].inputs.value = cfg.imgHeight;
-    workflow["690:674"].inputs.value = cfg.fluxCfg;
     workflow["690:686"].inputs.lora_name = cfg.loraName;
-    workflow["690:686"].inputs.strength_model = cfg.loraStrength;
-    workflow["690:686"].inputs.strength_clip = cfg.loraStrength;
+
+    patchWorkflow(workflow, genSettings, 'img2img');
 
     const promptId = await queuePrompt(workflow, cfg.comfyUrl);
     return await pollForImage(promptId, cfg.comfyUrl, onProgress);
   }
 
   // ---- MULTI IMAGE ----
-  async function multiImage(prompt, image1Url, image2Url, onProgress) {
+  async function multiImage(prompt, image1Url, image2Url, genSettings, onProgress) {
     const cfg = Config.get();
-    const workflow = await loadWorkflow('multiimage.json');
+    const originalWorkflow = await loadWorkflow('multiimage.json');
+    const workflow = deepCopyWorkflow(originalWorkflow);
 
     const filename1 = await uploadImage(image1Url, cfg.comfyUrl);
     const filename2 = await uploadImage(image2Url, cfg.comfyUrl);
@@ -159,14 +260,9 @@ const ComfyUI = (() => {
     workflow["579"].inputs.value = fullPrompt;
     workflow["578"].inputs.image = filename1;
     workflow["580"].inputs.image = filename2;
-    workflow["577:353"].inputs.value = Math.floor(Math.random() * 2 ** 32);
-    workflow["577:354"].inputs.value = cfg.fluxSteps;
-    workflow["577:355"].inputs.value = cfg.imgWidth;
-    workflow["577:356"].inputs.value = cfg.imgHeight;
-    workflow["577:553"].inputs.value = cfg.fluxCfg;
     workflow["577:583"].inputs.lora_name = cfg.loraName;
-    workflow["577:583"].inputs.strength_model = cfg.loraStrength;
-    workflow["577:583"].inputs.strength_clip = cfg.loraStrength;
+
+    patchWorkflow(workflow, genSettings, 'multiimg');
 
     const promptId = await queuePrompt(workflow, cfg.comfyUrl);
     return await pollForImage(promptId, cfg.comfyUrl, onProgress);

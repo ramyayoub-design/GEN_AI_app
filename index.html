@@ -102,31 +102,43 @@
             </div>
           </div>
 
-          <!-- Fix 5: CSS Filter Controls -->
+          <!-- Generation Settings -->
           <div class="sidebar-section">
-            <div class="section-sign">Filters</div>
+            <div class="section-sign">Generation</div>
             <div class="section-body">
-              <div class="filter-row">
-                <span class="filter-label">Brightness</span>
-                <span class="filter-value" id="filterBrightnessVal">100%</span>
+
+              <div class="gen-field-row">
+                <span class="gen-field-label">Width</span>
+                <input type="number" id="genWidth" class="gen-num-input" min="256" max="2048" step="64" value="1024" />
               </div>
-              <input type="range" class="filter-slider" id="filterBrightness" min="0" max="200" value="100" step="5" />
-              <div class="filter-row">
-                <span class="filter-label">Contrast</span>
-                <span class="filter-value" id="filterContrastVal">100%</span>
+
+              <div class="gen-field-row">
+                <span class="gen-field-label">Height</span>
+                <input type="number" id="genHeight" class="gen-num-input" min="256" max="2048" step="64" value="1024" />
               </div>
-              <input type="range" class="filter-slider" id="filterContrast" min="0" max="200" value="100" step="5" />
-              <div class="filter-row">
-                <span class="filter-label">Saturation</span>
-                <span class="filter-value" id="filterSaturationVal">100%</span>
+
+              <div class="gen-field-row">
+                <span class="gen-field-label">Steps</span>
+                <input type="number" id="genSteps" class="gen-num-input" min="1" max="150" step="1" value="20" />
               </div>
-              <input type="range" class="filter-slider" id="filterSaturation" min="0" max="200" value="100" step="5" />
-              <div class="filter-row">
-                <span class="filter-label">Hue</span>
-                <span class="filter-value" id="filterHueVal">0°</span>
+
+              <div class="gen-field-row">
+                <span class="gen-field-label">Seed</span>
+                <input type="number" id="genSeed" class="gen-num-input" min="-1" step="1" placeholder="random" />
               </div>
-              <input type="range" class="filter-slider" id="filterHue" min="0" max="360" value="0" step="10" />
-              <button class="btn-outline-dark" id="filterResetBtn" style="margin-top:6px;">Reset</button>
+
+              <div class="filter-row" style="margin-top:8px;">
+                <span class="filter-label">CFG Scale</span>
+                <span class="filter-value" id="genCfgVal">7</span>
+              </div>
+              <input type="range" class="filter-slider" id="genCfgSlider" min="1" max="20" step="0.5" value="7" />
+
+              <label class="gen-neg-label" for="genNegativePrompt">Negative Prompt</label>
+              <textarea id="genNegativePrompt" class="gen-neg-textarea"
+                placeholder="e.g. blurry, photorealistic, low quality"></textarea>
+
+              <button class="btn-outline-dark" id="genSettingsResetBtn" style="margin-top:8px;">Reset</button>
+
             </div>
           </div>
 
