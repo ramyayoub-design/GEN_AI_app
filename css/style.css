@@ -1100,13 +1100,13 @@ div:hover > .output-cell-actions { opacity: 1; }
 
 
 #comicBubbleCanvas {
-  pointer-events: auto !important;
-  z-index: 50 !important;
+  pointer-events: none !important;
+  z-index: 80 !important;
 }
 
 .comic-bubble {
   pointer-events: auto !important;
-  z-index: 60 !important;
+  z-index: 90 !important;
 }
 
 
@@ -1160,4 +1160,347 @@ div:hover > .output-cell-actions { opacity: 1; }
   width: min(82vh, 620px) !important;
   height: calc(min(82vh, 620px) * 1.414) !important;
   max-height: calc(100vh - 185px) !important;
+}
+
+/* ============================================
+   LIGHTBOX IMAGE PREVIEW
+   ============================================ */
+.lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.lightbox-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-image-wrap {
+  position: relative;
+  max-width: 85vw;
+  max-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-image {
+  max-width: 85vw;
+  max-height: 85vh;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  transition: all 0.15s;
+  z-index: 2001;
+}
+
+.lightbox-close:hover {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* ============================================
+   MAGAZINE COMIC MODE OVERRIDES
+   ============================================ */
+
+#tab-magazine .mag-layout-picker {
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  padding: 3px 10px !important;
+  gap: 6px !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  overflow: hidden !important;
+}
+
+#tab-magazine .mag-layout-thumb {
+  width: 62px !important;
+  height: 36px !important;
+  min-width: 62px !important;
+  max-width: 62px !important;
+  padding: 2px !important;
+  gap: 0 !important;
+  flex: 0 0 62px !important;
+}
+
+#tab-magazine .mag-layout-thumb svg {
+  width: 32px !important;
+  height: 20px !important;
+}
+
+#tab-magazine .mag-layout-thumb-label {
+  font-size: 6px !important;
+  line-height: 1 !important;
+}
+
+#tab-magazine .mag-canvas-wrap {
+  padding: 6px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: auto !important;
+}
+
+#tab-magazine #magazineCanvas {
+  width: min(58vh, 500px) !important;
+  height: calc(min(58vh, 500px) * 1.414) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-height: calc(100vh - 175px) !important;
+  margin: 0 auto !important;
+  background: #f5f0e8 !important;
+}
+
+#tab-magazine .mag-canvas-footer {
+  display: none !important;
+}
+
+#tab-magazine #comicSVG {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+}
+
+#tab-magazine #comicBubbleCanvas {
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  z-index: 999 !important;
+  overflow: visible !important;
+}
+
+#tab-magazine .comic-bubble {
+  pointer-events: auto !important;
+  z-index: 1000 !important;
+}
+
+#tab-magazine .comic-bubble * {
+  pointer-events: auto !important;
+}
+
+
+
+/* FINAL MAGAZINE COMIC MODE — CLEAN OVERRIDE */
+
+/* ============================================
+   FINAL MAGAZINE COMIC MODE — CLEAN OVERRIDE
+   ============================================ */
+
+#tab-magazine .magazine-layout {
+  display: grid !important;
+  grid-template-columns: 280px minmax(0, 1fr) 300px !important;
+  height: calc(100vh - 160px) !important;
+  overflow: hidden !important;
+  background: var(--black) !important;
+}
+
+#tab-magazine .mag-left-sidebar,
+#tab-magazine .mag-sidebar {
+  background: var(--dark) !important;
+  border-right: 1px solid var(--border) !important;
+  overflow-y: auto !important;
+}
+
+#tab-magazine .mag-bubble-sidebar {
+  background: var(--dark) !important;
+  border-left: 1px solid var(--border) !important;
+  overflow-y: auto !important;
+}
+
+#tab-magazine .mag-main {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  min-width: 0 !important;
+  background: var(--black) !important;
+}
+
+#tab-magazine .mag-layout-picker {
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  padding: 3px 8px !important;
+  gap: 5px !important;
+  border-bottom: 1px solid var(--border) !important;
+  background: var(--mid) !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+}
+
+#tab-magazine .mag-layout-picker-label {
+  font-size: 8px !important;
+  letter-spacing: 1px !important;
+  white-space: nowrap !important;
+}
+
+#tab-magazine .mag-layout-thumb {
+  width: 58px !important;
+  height: 34px !important;
+  min-width: 58px !important;
+  max-width: 58px !important;
+  flex: 0 0 58px !important;
+  padding: 2px !important;
+  gap: 0 !important;
+  border: 1px solid var(--border) !important;
+}
+
+#tab-magazine .mag-layout-thumb svg {
+  width: 30px !important;
+  height: 18px !important;
+}
+
+#tab-magazine .mag-layout-thumb-label {
+  font-size: 6px !important;
+  line-height: 1 !important;
+  letter-spacing: 0.2px !important;
+}
+
+#tab-magazine .mag-zoom-controls {
+  margin-left: auto !important;
+  height: 28px !important;
+}
+
+#tab-magazine .mag-zoom-btn {
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 11px !important;
+}
+
+#tab-magazine .mag-zoom-label {
+  font-size: 8px !important;
+}
+
+#tab-magazine .mag-canvas-wrap {
+  flex: 1 !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px 12px !important;
+  background-color: #0b0b0b !important;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px) !important;
+  background-size: 40px 40px !important;
+}
+
+#tab-magazine #magazineCanvas {
+  position: relative !important;
+  width: min(58vh, 500px) !important;
+  height: calc(min(58vh, 500px) * 1.414) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-height: calc(100vh - 175px) !important;
+  margin: 0 auto !important;
+  background: #f5f0e8 !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.55) !important;
+  overflow: visible !important;
+  transform-origin: center center !important;
+}
+
+#tab-magazine #comicSVG {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+}
+
+#tab-magazine #comicBubbleCanvas {
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  z-index: 50 !important;
+  overflow: visible !important;
+}
+
+#tab-magazine .comic-bubble {
+  position: absolute !important;
+  pointer-events: auto !important;
+  z-index: 1000 !important;
+}
+
+#tab-magazine .comic-bubble svg {
+  pointer-events: none !important;
+}
+
+#tab-magazine .comic-bubble-text {
+  pointer-events: auto !important;
+}
+
+#tab-magazine .comic-bubble-handle,
+#tab-magazine .comic-bubble-resize-x,
+#tab-magazine .comic-bubble-resize-y,
+#tab-magazine .comic-bubble-tail-handle {
+  pointer-events: auto !important;
+  z-index: 1001 !important;
+}
+
+#tab-magazine .mag-canvas-footer,
+#tab-magazine .mag-add-panel-btn {
+  display: none !important;
+}
+
+#tab-magazine .comic-bubble-actions {
+  display: flex !important;
+  gap: 6px !important;
+  margin-bottom: 8px !important;
+}
+
+#tab-magazine .comic-add-bubble-btn,
+#tab-magazine .comic-clear-bubbles-btn {
+  flex: 1 !important;
+  background: none !important;
+  border: 1.5px solid var(--red) !important;
+  color: var(--red) !important;
+  padding: 6px !important;
+  font-size: 10px !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+  font-family: var(--font) !important;
+  font-weight: 700 !important;
+}
+
+#tab-magazine .comic-add-bubble-btn:hover,
+#tab-magazine .comic-clear-bubbles-btn:hover {
+  background: var(--red) !important;
+  color: white !important;
+}
+
+
+
+#magUploadImageBtn {
+  display: none !important;
 }

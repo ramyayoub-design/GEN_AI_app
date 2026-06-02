@@ -1,335 +1,367 @@
-// magazine.js — Layout-based magazine builder with in-panel generation and zoom
+// magazine.js — Clean comic-only magazine builder for FlatDream
 
 const Magazine = (() => {
-
-  // ---- State ----
-  let slots         = [];
   let currentLayout = 'cut4';
-  let pendingSlotId = null;
-  let zoom          = 1.0;
+  let zoom = 1;
+  let uploadedImages = [];
 
-  // Comic layouts delegate to ComicPanels
-  const COMIC_LAYOUTS = new Set(['cut3','cut4','cut5','cut6']);
-  function isComic(layout) { return COMIC_LAYOUTS.has(layout); }
+  const COMIC_LAYOUTS = new Set(['cut3', 'cut4', 'cut5', 'cut6']);
 
-  // ---- Layout definitions (900×700 canvas) ----
-  const LAYOUTS = {
-    'landscape-grid': (count) => {
-      const w = Math.floor(860 / 2);
-      const h = 320;
-      return Array.from({ length: count }, (_, i) => ({
-        x: 20 + (i % 2) * (w + 12),
-        y: 20 + Math.floor(i / 2) * (h + 12),
-        w, h, oblique: null
-      }));
-    },
-    'landscape-oblique': (count) => {
-      const w = Math.floor(860 / 2);
-      const h = 320;
-      return Array.from({ length: count }, (_, i) => ({
-        x: 20 + (i % 2) * (w + 12),
-        y: 20 + Math.floor(i / 2) * (h + 12),
-        w, h,
-        oblique: (i % 2 === 0) ? 'oblique-left' : 'oblique-right'
-      }));
-    },
-    'portrait-grid': (count) => {
-      const h = Math.floor(660 / 2);
-      return Array.from({ length: count }, (_, i) => ({
-        x: 20, y: 20 + i * (h + 12), w: 860, h, oblique: null
-      }));
-    },
-    'portrait-oblique': (count) => {
-      const h = Math.floor(660 / 2);
-      return Array.from({ length: count }, (_, i) => ({
-        x: 20, y: 20 + i * (h + 12), w: 860, h,
-        oblique: (i % 2 === 0) ? 'oblique-top' : 'oblique-bottom'
-      }));
-    }
-  };
+  function isComic(layout) {
+    return COMIC_LAYOUTS.has(layout);
+  }
 
-  // ---- Init ----
   function init() {
-    ComicPanels.init('cut4');
-    ComicBubbles.init();
-    initSlots(2);
-    render();
+    if (window.ComicPanels) {
+      ComicPanels.init(currentLayout);
+    }
+
+    if (window.ComicBubbles) {
+      ComicBubbles.init();
+    }
+
     initLayoutPicker();
+    ensureHiddenUploadInput();
+    initLibraryUpload();
+    initPromptControls();
+
+    render();
+  }
+
+  function ensureHiddenUploadInput() {
+    let uploadInput = document.getElementById('magUploadImageInput');
+
+    if (!uploadInput) {
+      uploadInput = document.createElement('input');
+      uploadInput.id = 'magUploadImageInput';
+      uploadInput.type = 'file';
+      uploadInput.accept = 'image/*';
+      uploadInput.style.display = 'none';
+      document.body.appendChild(uploadInput);
+    }
+
+    // Remove/hide sidebar upload button if it exists
+    const uploadBtn = document.getElementById('magUploadImageBtn');
+    if (uploadBtn) {
+      uploadBtn.style.display = 'none';
+    }
+  }
+
+  function openUploadForPanel(panelId) {
+    if (!panelId) {
+      alert('Select a panel first.');
+      return;
+    }
+
+    window._pendingComicPanelId = panelId;
+
+    const uploadInput = document.getElementById('magUploadImageInput');
+    if (!uploadInput) {
+      alert('Upload input is missing.');
+      return;
+    }
+
+    console.log('[Magazine Upload] opening file picker for panel:', panelId);
+
+    uploadInput.value = '';
+    uploadInput.click();
+  }
+
+  function initLibraryUpload() {
+    const uploadInput = document.getElementById('magUploadImageInput');
+
+    console.log('[Magazine Upload] init hidden input', {
+      uploadInput: !!uploadInput,
+    });
+
+    if (!uploadInput) {
+      console.error('[Magazine Upload] Missing hidden upload input');
+      return;
+    }
+
+    uploadInput.onchange = e => {
+      const file = e.target.files && e.target.files[0];
+
+      console.log('[Magazine Upload] file selected:', file);
+
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file.');
+        uploadInput.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = event => {
+        const imageUrl = event.target.result;
+
+        if (!imageUrl) {
+          alert('Image upload failed: empty file result.');
+          return;
+        }
+
+        console.log('[Magazine Upload] image loaded as data URL');
+
+        uploadedImages.unshift(imageUrl);
+        renderUploadedLibrary();
+
+        if (window._pendingComicPanelId && window.ComicPanels && ComicPanels.addImageToSelected) {
+          console.log('[Magazine Upload] inserting into pending panel:', window._pendingComicPanelId);
+          ComicPanels.addImageToSelected(imageUrl);
+        } else {
+          console.warn('[Magazine Upload] No pending comic panel.');
+        }
+      };
+
+      reader.onerror = () => {
+        console.error('[Magazine Upload] FileReader failed:', reader.error);
+        alert('Image upload failed.');
+      };
+
+      reader.readAsDataURL(file);
+    };
+
+    renderUploadedLibrary();
+  }
+
+  function renderUploadedLibrary() {
+    const uploadLibrary = document.getElementById('magUploadLibrary');
+
+    if (!uploadLibrary) return;
+
+    uploadLibrary.innerHTML = '';
+
+    if (uploadedImages.length === 0) {
+      return;
+    }
+
+    uploadedImages.forEach((imageUrl, index) => {
+      const item = document.createElement('div');
+      item.className = 'mag-thumb';
+
+      item.innerHTML = `
+        <img src="${imageUrl}" class="mag-thumb-img" alt="Uploaded image ${index + 1}" />
+        <div class="mag-thumb-actions">
+          <button class="mag-thumb-btn" type="button">+ Panel</button>
+        </div>
+      `;
+
+      item.addEventListener('click', () => {
+        console.log('[Magazine Upload] thumbnail clicked:', index);
+        addImage(imageUrl);
+      });
+
+      const panelBtn = item.querySelector('.mag-thumb-btn');
+      if (panelBtn) {
+        panelBtn.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          console.log('[Magazine Upload] + Panel clicked:', index);
+          addImage(imageUrl);
+        });
+      }
+
+      uploadLibrary.appendChild(item);
+    });
   }
 
   function initLayoutPicker() {
     document.querySelectorAll('.mag-layout-thumb').forEach(thumb => {
       thumb.addEventListener('click', () => {
+        const layout = thumb.dataset.layout;
+        if (!isComic(layout)) return;
+
         document.querySelectorAll('.mag-layout-thumb').forEach(t => t.classList.remove('active'));
         thumb.classList.add('active');
-        currentLayout = thumb.dataset.layout;
 
-        if (isComic(currentLayout)) {
-          // Reset canvas styles before comic render takes over
-          const canvas = document.getElementById('magazineCanvas');
-          if (canvas) {
-            canvas.style.backgroundImage = 'none';
-            canvas.style.minWidth = '';
-          }
-          // Hide bubble section until a panel is selected
-          const bs = document.getElementById('comicBubbleSection');
-          if (bs) bs.style.display = 'none';
-          // Show editor placeholder
-          const ed = document.getElementById('magEditor');
-          if (ed) ed.innerHTML = `<p class="mag-no-sel">Click a comic panel to edit</p>`;
+        currentLayout = layout;
+        window._pendingComicPanelId = null;
+
+        if (window.ComicPanels) {
           ComicPanels.setLayout(currentLayout);
-        } else {
-          // Restore slot-mode canvas styles
-          const canvas = document.getElementById('magazineCanvas');
-          if (canvas) {
-            canvas.style.height = '';
-            canvas.style.minHeight = '';
-            canvas.style.backgroundImage = '';
-          }
-          const bs = document.getElementById('comicBubbleSection');
-          if (bs) bs.style.display = 'none';
-          const images = slots.map(s => s.imageUrl).filter(Boolean);
-          initSlots(Math.max(2, images.length));
-          images.forEach((url, i) => { if (slots[i]) slots[i].imageUrl = url; });
-          render();
+          ComicPanels.syncPromptUI?.();
+        }
+
+        const bubbleSection = document.getElementById('comicBubbleSection');
+        if (bubbleSection) {
+          bubbleSection.style.display = 'block';
+        }
+
+        if (window.ComicBubbles) {
+          ComicBubbles.renderBubbleList();
         }
       });
     });
   }
 
-  function initSlots(count) {
-    const fn = LAYOUTS[currentLayout] || LAYOUTS['landscape-grid'];
-    slots = fn(count).map((pos, i) => ({
-      id: `slot-${Date.now()}-${i}`,
-      imageUrl: null,
-      ...pos
-    }));
-  }
+  function initPromptControls() {
+    const promptEl = document.getElementById('magPanelPrompt');
+    const enhanceBtn = document.getElementById('magEnhancePromptBtn');
 
-  // ---- Add image from library ----
-  function addImage(imageUrl) {
-    if (pendingSlotId) {
-      const slot = slots.find(s => s.id === pendingSlotId);
-      if (slot) { slot.imageUrl = imageUrl; pendingSlotId = null; render(); return; }
-      pendingSlotId = null;
-    }
-    const empty = slots.find(s => !s.imageUrl);
-    if (empty) { empty.imageUrl = imageUrl; render(); return; }
-    addPanels(2);
-    const newEmpty = slots.find(s => !s.imageUrl);
-    if (newEmpty) newEmpty.imageUrl = imageUrl;
-    render();
-  }
-
-  // ---- Add panels (Fix 10, 11) ----
-  function addPanels(n = 2) {
-    const newCount  = slots.length + n;
-    const fn        = LAYOUTS[currentLayout] || LAYOUTS['landscape-grid'];
-    const oldImages = slots.map(s => s.imageUrl);
-    slots = fn(newCount).map((pos, i) => ({
-      id: `slot-${Date.now()}-${i}`,
-      imageUrl: oldImages[i] || null,
-      ...pos
-    }));
-    render();
-  }
-
-  // Exposed for the external "Add Panels" button (Fix 11)
-  function addPanelsExternal() { addPanels(2); }
-
-  function clearAll() {
-    if (isComic(currentLayout)) {
-    ComicPanels.init(currentLayout);
-    ComicBubbles.clearAll();
-    ComicPanels.render();
-    return;
-  }
-
-  initSlots(2);
-  render();
-}
-
-  // ---- Render ----
-  function render() {
-    // Comic layouts delegate to ComicPanels
-    if (isComic(currentLayout)) { ComicPanels.render(); return; }
-
-    const canvas = document.getElementById('magazineCanvas');
-    if (!canvas) return;
-
-    // Restore slot-mode canvas defaults
-    canvas.style.backgroundImage = '';
-    canvas.style.height    = '';
-    canvas.style.minHeight = '';
-    canvas.style.minWidth  = '';
-    canvas.innerHTML = '';
-
-    if (slots.length === 0) {
-      canvas.innerHTML = `<div class="mag-empty"><div class="mag-empty-icon">[ ]</div><p>Click a panel to add an image</p></div>`;
-      return;
+    if (promptEl) {
+      promptEl.addEventListener('input', () => {
+        const panel = window.ComicPanels ? ComicPanels.getSelected?.() : null;
+        if (panel) {
+          panel.prompt = promptEl.value;
+        }
+      });
     }
 
-    slots.forEach(slot => {
-      const el = document.createElement('div');
-      el.className = 'mag-slot' +
-        (slot.oblique  ? ` ${slot.oblique}` : '') +
-        (slot.imageUrl ? ' has-image' : '');
-      el.id        = slot.id;
-      el.style.cssText = `left:${slot.x}px; top:${slot.y}px; width:${slot.w}px; height:${slot.h}px;`;
+    if (enhanceBtn) {
+      enhanceBtn.addEventListener('click', async () => {
+        const panel = window.ComicPanels ? ComicPanels.getSelected?.() : null;
 
-      if (slot.imageUrl) {
-        renderSlotFilled(slot, el);
-      } else {
-        renderSlotEmpty(slot, el);
-      }
-      canvas.appendChild(el);
-    });
+        if (!panel) {
+          alert('Select a comic panel first.');
+          return;
+        }
 
-    // Floating + button inside canvas (stays for quick access)
-    const addBtn = document.createElement('button');
-    addBtn.className = 'mag-add-panel-btn';
-    addBtn.title     = 'Add 2 panels';
-    addBtn.textContent = '+';
-    addBtn.addEventListener('click', () => addPanels(2));
-    canvas.appendChild(addBtn);
-  }
+        const el = document.getElementById('magPanelPrompt');
+        const original = el ? el.value.trim() : '';
 
-  function renderSlotFilled(slot, el) {
-    el.innerHTML = `
-      <img src="${slot.imageUrl}" class="mag-slot-img" draggable="false" />
-      <button class="mag-slot-remove" title="Clear image">✕</button>`;
-    el.querySelector('.mag-slot-remove').addEventListener('click', e => {
-      e.stopPropagation();
-      slot.imageUrl = null;
-      el.classList.remove('has-image');
-      render();
-    });
-    el.addEventListener('click', () => renderEditor(slot));
-  }
+        if (!original) {
+          alert('Write a prompt first.');
+          return;
+        }
 
-  // Fix 10: Two action buttons for empty slot
-  function renderSlotEmpty(slot, el) {
-    el.innerHTML = `
-      <div class="mag-slot-actions">
-        <button class="mag-slot-add-btn">+ Library</button>
-        <button class="mag-slot-gen-btn">⚡ Generate</button>
-      </div>`;
+        if (!window.LMStudio || !LMStudio.expandPrompt) {
+          alert('LM Studio expandPrompt function is not available.');
+          return;
+        }
 
-    el.querySelector('.mag-slot-add-btn').addEventListener('click', e => {
-      e.stopPropagation();
-      // Clear any previous pending highlight
-      document.querySelectorAll('.mag-slot').forEach(s => s.style.outline = '');
-      pendingSlotId = slot.id;
-      el.style.outline = '2px solid var(--red)';
-      renderEditor(null, true);
-    });
+        const oldValue = el.value;
+        el.value = 'Enhancing prompt...';
 
-    el.querySelector('.mag-slot-gen-btn').addEventListener('click', e => {
-      e.stopPropagation();
-      showSlotGenerateForm(slot, el);
-    });
-  }
+        try {
+          const expanded = await LMStudio.expandPrompt(original, 'comic panel');
 
-  // Fix 10: Inline generate form inside slot
-  function showSlotGenerateForm(slot, el) {
-    el.innerHTML = `
-      <div class="mag-gen-form">
-        <textarea class="mag-gen-prompt" rows="4"
-          placeholder="Describe architectural scene…"></textarea>
-        <div class="mag-gen-form-btns">
-          <button class="mag-gen-submit">▶ Gen</button>
-          <button class="mag-gen-cancel">✕</button>
-        </div>
-      </div>`;
-
-    el.querySelector('.mag-gen-cancel').addEventListener('click', e => {
-      e.stopPropagation();
-      render();
-    });
-
-    el.querySelector('.mag-gen-submit').addEventListener('click', async e => {
-      e.stopPropagation();
-      const promptText = el.querySelector('.mag-gen-prompt').value.trim();
-      if (!promptText) return;
-
-      el.innerHTML = `<div class="mag-slot-loading">⚡ Generating…</div>`;
-
-      try {
-        const cfg        = Config.get();
-        const styleEl    = document.getElementById('styleSelect');
-        const style      = styleEl ? styleEl.value : '';
-        const fullPrompt = `${cfg.loraTrigger || 'torzev'} ${promptText}${style ? ', ' + style : ''}`;
-        const imageUrl   = await ComfyUI.textToImage(fullPrompt, null);
-        slot.imageUrl    = imageUrl;
-        render();
-      } catch (err) {
-        alert('Panel generation failed: ' + err.message);
-        render();
-      }
-    });
-  }
-
-  // ---- Render editor sidebar ----
-  function renderEditor(slot, waitingForImage = false) {
-    const editor = document.getElementById('magEditor');
-    if (!editor) return;
-
-    if (waitingForImage) {
-      editor.innerHTML = `<p class="mag-no-sel" style="color:#EF9F27;">Click an image in the Library to add it to the highlighted panel</p>`;
-      return;
-    }
-
-    if (!slot) {
-      editor.innerHTML = `<p class="mag-no-sel">Click a panel to edit</p>`;
-      return;
-    }
-
-    editor.innerHTML = `
-      <div class="mag-editor-section">
-        <label class="mag-editor-label">Status</label>
-        <p class="mag-no-sel" style="font-size:14px;">${slot.imageUrl ? '✓ Image loaded' : 'Empty'}</p>
-      </div>
-      <div class="mag-editor-section">
-        <label class="mag-editor-label">Size</label>
-        <p class="mag-no-sel" style="font-size:14px;">${slot.w} × ${slot.h} px</p>
-      </div>
-      ${slot.imageUrl ? `<button class="mag-remove-btn" id="magSlotClear">Clear Image</button>` : ''}`;
-
-    if (slot.imageUrl) {
-      document.getElementById('magSlotClear').addEventListener('click', () => {
-        slot.imageUrl = null;
-        render();
-        renderEditor(null);
+          if (expanded) {
+            el.value = expanded;
+            panel.prompt = expanded;
+          } else {
+            el.value = oldValue;
+          }
+        } catch (err) {
+          el.value = oldValue;
+          alert('Prompt enhancement failed: ' + err.message);
+        }
       });
     }
   }
 
-  // ---- Export ----
+  function render() {
+    ensureHiddenUploadInput();
+
+    if (window.ComicPanels) {
+      ComicPanels.render();
+      ComicPanels.syncPromptUI?.();
+    }
+
+    const bubbleSection = document.getElementById('comicBubbleSection');
+    if (bubbleSection) {
+      bubbleSection.style.display = 'block';
+    }
+
+    if (window.ComicBubbles) {
+      ComicBubbles.renderBubbleList();
+    }
+
+    renderUploadedLibrary();
+  }
+
+  function addImage(imageUrl) {
+    if (!imageUrl) return;
+
+    if (!window.ComicPanels || !ComicPanels.addImageToSelected) {
+      alert('Comic panel system is not ready.');
+      return;
+    }
+
+    ComicPanels.addImageToSelected(imageUrl);
+  }
+
+  function clearAll() {
+    if (!confirm('Clear all comic panels and bubbles?')) return;
+
+    if (window.ComicPanels) {
+      ComicPanels.init(currentLayout);
+      ComicPanels.render();
+      ComicPanels.syncPromptUI?.();
+    }
+
+    if (window.ComicBubbles) {
+      ComicBubbles.clearAll();
+    }
+
+    window._pendingComicPanelId = null;
+  }
+
   async function exportPNG() {
     const canvas = document.getElementById('magazineCanvas');
     if (!canvas) return;
+
     try {
-      const dataUrl = await domtoimage.toPng(canvas);
-      const link    = document.createElement('a');
-      link.download = `flatdream_magazine_${Date.now()}.png`;
-      link.href     = dataUrl;
+      const dataUrl = await domtoimage.toPng(canvas, {
+        bgcolor: '#f5f0e8',
+      });
+
+      const link = document.createElement('a');
+      link.download = `flatdream_comic_${Date.now()}.png`;
+      link.href = dataUrl;
       link.click();
-    } catch (e) { alert('Export failed: ' + e.message); }
+    } catch (err) {
+      alert('Export failed: ' + err.message);
+    }
   }
 
-  // ---- Zoom (Fix 11) ----
-  function zoomIn()  { setZoom(Math.min(zoom + 0.15, 2.0)); }
-  function zoomOut() { setZoom(Math.max(zoom - 0.15, 0.4)); }
+  function zoomIn() {
+    setZoom(Math.min(zoom + 0.1, 1.6));
+  }
+
+  function zoomOut() {
+    setZoom(Math.max(zoom - 0.1, 0.5));
+  }
 
   function setZoom(value) {
     zoom = parseFloat(value.toFixed(2));
-    const canvas  = document.getElementById('magazineCanvas');
-    const label   = document.getElementById('magZoomLabel');
-    if (canvas) canvas.style.transform = `scale(${zoom})`;
-    if (label)  label.textContent = `${Math.round(zoom * 100)}%`;
+
+    const canvas = document.getElementById('magazineCanvas');
+    const label = document.getElementById('magZoomLabel');
+
+    if (canvas) {
+      canvas.style.transform = `scale(${zoom})`;
+    }
+
+    if (label) {
+      label.textContent = `${Math.round(zoom * 100)}%`;
+    }
   }
 
-  function getAll() { return slots; }
+  function addPanelsExternal() {
+    alert('Panel count is controlled by the selected comic layout.');
+  }
 
-  return { init, addImage, clearAll, exportPNG, getAll, zoomIn, zoomOut, addPanelsExternal };
+  function getAll() {
+    return window.ComicPanels ? ComicPanels.getAll() : [];
+  }
+
+  const api = {
+    init,
+    render,
+    addImage,
+    clearAll,
+    exportPNG,
+    zoomIn,
+    zoomOut,
+    addPanelsExternal,
+    getAll,
+    openUploadForPanel,
+  };
+
+  return api;
 })();
+
+window.Magazine = Magazine;

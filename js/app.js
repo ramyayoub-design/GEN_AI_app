@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initLoraStrength();
   initFilters();        // Fix 5
   initPromptResize();   // Fix 3
+  initLightbox();
   Magazine.init();
   pingAll();
   loadConfigUI();
@@ -403,6 +404,55 @@ function addToGallery(imageUrl) {
   }
 }
 
+// ---- Lightbox image preview ----
+function showLightbox(imageUrl) {
+  const backdrop = document.getElementById('lightboxBackdrop');
+  const lightboxImg = document.getElementById('lightboxImage');
+  if (backdrop && lightboxImg) {
+    lightboxImg.src = imageUrl;
+    backdrop.style.display = 'flex';
+  }
+}
+
+function closeLightbox() {
+  const backdrop = document.getElementById('lightboxBackdrop');
+  if (backdrop) {
+    backdrop.style.display = 'none';
+  }
+}
+
+function initLightbox() {
+  const backdrop = document.getElementById('lightboxBackdrop');
+  const closeBtn = document.getElementById('lightboxClose');
+  const lightboxImage = document.getElementById('lightboxImage');
+
+  if (!backdrop) return;
+
+  // Close button
+  if (closeBtn) {
+    closeBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      closeLightbox();
+    });
+  }
+
+  // Click on backdrop (but not on image) closes lightbox
+  backdrop.addEventListener('click', e => {
+    if (e.target === backdrop) {
+      closeLightbox();
+    }
+  });
+
+  // Escape key closes lightbox (added only once during init)
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (backdrop.style.display !== 'none') {
+        closeLightbox();
+      }
+    }
+  });
+}
+
 // ---- Add 40px thumbnail to the history strip (txt2img only) ----
 function addThumbnail(imageUrl) {
   const grid = document.getElementById('outputGrid');
@@ -416,6 +466,12 @@ function addThumbnail(imageUrl) {
   img.src = imageUrl;
   img.className = 'output-img';
   if (window._currentFilter) img.style.filter = window._currentFilter;
+
+  // Click image to open lightbox
+  img.addEventListener('click', e => {
+    e.stopPropagation();
+    showLightbox(imageUrl);
+  });
 
   cell.innerHTML = `<div class="output-cell-actions">
     <button class="cell-btn" title="Add to Magazine">+M</button>

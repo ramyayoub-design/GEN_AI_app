@@ -292,16 +292,12 @@
       <div class="sidebar-section">
         <div class="section-sign">Library</div>
         <div class="section-body">
+          <button class="btn-outline-dark" id="magUploadImageBtn" style="margin-bottom:6px; width:100%;">+ Upload Image</button>
+          <input type="file" id="magUploadImageInput" accept="image/*" style="display:none;" />
+          <div class="mag-library" id="magUploadLibrary"></div>
           <div class="mag-library" id="magLibrary">
             <p class="mag-no-sel">Generated images appear here</p>
           </div>
-        </div>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="section-sign">Panel Editor</div>
-        <div class="section-body" id="magEditor">
-          <p class="mag-no-sel">Click a panel to edit</p>
         </div>
       </div>
 
@@ -310,6 +306,62 @@
         <div class="section-body">
           <button class="btn-generate" id="magExportBtn">Export PNG</button>
           <button class="btn-outline-dark" id="magClearBtn" style="margin-top:6px;">Clear All</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">LoRA</div>
+        <div class="section-body">
+          <div class="lora-badge">torzev</div>
+          <div class="callout-row">
+            <span class="callout-line"></span>
+            <span class="callout-text" id="magLoraStrengthLabel">strength 1.0</span>
+          </div>
+          <input type="range" id="magLoraStrengthSlider" min="0" max="2" step="0.05" value="1.0" class="strength-slider" />
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">Style</div>
+        <div class="section-body">
+          <select id="magStyleSelect" class="select-field">
+            <option value="technical ink illustration, section elevation, flat color fills, orthographic">Section Elevation</option>
+            <option value="technical ink illustration, isometric cutaway, flat color fills, bird's eye view">Isometric Cutaway</option>
+            <option value="technical ink illustration, duotone screen print, high contrast, single color">Duotone Print</option>
+            <option value="technical ink illustration, oblique perspective, flat color fills, three-quarter view">Oblique View</option>
+            <option value="technical ink illustration, street perspective, vanishing point, eye-level">Street Perspective</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">Generation</div>
+        <div class="section-body">
+          <div class="gen-field-row">
+            <span class="gen-field-label">Width</span>
+            <input type="number" id="magGenWidth" class="gen-num-input" min="256" max="2048" step="64" value="1024" />
+          </div>
+          <div class="gen-field-row">
+            <span class="gen-field-label">Height</span>
+            <input type="number" id="magGenHeight" class="gen-num-input" min="256" max="2048" step="64" value="1024" />
+          </div>
+          <div class="gen-field-row">
+            <span class="gen-field-label">Steps</span>
+            <input type="number" id="magGenSteps" class="gen-num-input" min="1" max="150" step="1" value="20" />
+          </div>
+          <div class="gen-field-row">
+            <span class="gen-field-label">Seed</span>
+            <input type="number" id="magGenSeed" class="gen-num-input" min="-1" step="1" placeholder="random" />
+          </div>
+          <div class="filter-row" style="margin-top:8px;">
+            <span class="filter-label">CFG Scale</span>
+            <span class="filter-value" id="magGenCfgVal">5</span>
+          </div>
+          <input type="range" class="filter-slider" id="magGenCfgSlider" min="1" max="20" step="0.5" value="5" />
+          <label class="gen-neg-label" for="magPanelPrompt">Panel Prompt</label>
+          <textarea id="magPanelPrompt" class="gen-neg-textarea" placeholder="Write the prompt for the selected comic panel..."></textarea>
+          <button class="btn-expand-inline" id="magEnhancePromptBtn" style="margin-top:4px;">Enhance with LLM ↗</button>
+          <button class="btn-outline-dark" id="magGenSettingsResetBtn" style="margin-top:8px;">Reset</button>
         </div>
       </div>
     </aside>
@@ -463,6 +515,16 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- LIGHTBOX IMAGE PREVIEW -->
+  <div class="lightbox-backdrop" id="lightboxBackdrop" style="display:none;">
+    <div class="lightbox-container">
+      <button class="lightbox-close" id="lightboxClose">✕</button>
+      <div class="lightbox-image-wrap">
+        <img id="lightboxImage" class="lightbox-image" src="" alt="Preview" />
+      </div>
+    </div>
   </div>
 
   <!-- FOOTER -->
