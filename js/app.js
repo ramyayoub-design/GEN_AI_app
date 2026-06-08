@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initGenerate();
   initMagazine();
   init3D();
+  initSketch();
   initConfig();
   initLoraStrength();
   initFilters();        // Fix 5
@@ -218,6 +219,66 @@ function fileToDataURL(file) {
   });
 }
 
+// ---- Model Shot bridge: receive captured PNG from modelshot.js ----
+function dataUrlToFile(dataUrl, filename = 'modelshot.png') {
+  return fetch(dataUrl)
+    .then(r => r.blob())
+    .then(blob => new File([blob], filename, { type: 'image/png' }));
+}
+
+window.FlatDreamModelShot = {
+  async sendToImg2Img(dataUrl) {
+    const file = await dataUrlToFile(dataUrl, 'modelshot_img2img.png');
+
+    img2imgFile = file;
+
+    const preview = document.getElementById('img2imgPreview');
+    if (preview) {
+      preview.innerHTML = `
+        <img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" />
+      `;
+    }
+
+    document.querySelector('[data-tab="generate"]')?.click();
+    document.querySelector('[data-mode="img2img"]')?.click();
+  },
+
+  async sendToMultiRef(index, dataUrl) {
+    const file = await dataUrlToFile(dataUrl, `modelshot_multi_${index}.png`);
+
+    if (index === 1) {
+      multi1File = file;
+      const preview = document.getElementById('multi1Preview');
+      if (preview) {
+        preview.innerHTML = `
+          <img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" />
+        `;
+      }
+    } else {
+      multi2File = file;
+      const preview = document.getElementById('multi2Preview');
+      if (preview) {
+        preview.innerHTML = `
+          <img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;" />
+        `;
+      }
+    }
+
+    document.querySelector('[data-tab="generate"]')?.click();
+    document.querySelector('[data-mode="multiimg"]')?.click();
+  },
+
+  sendToSketch(dataUrl) {
+    if (!window.Sketch || !Sketch.loadImage) {
+      alert('Sketch module is not ready.');
+      return;
+    }
+
+    Sketch.loadImage(dataUrl);
+    document.querySelector('[data-tab="sketch"]')?.click();
+  }
+};
+
 // ---- Generation Settings ----
 function getGenerationSettings() {
   const width = parseInt(document.getElementById('genWidth')?.value || 1024);
@@ -306,6 +367,45 @@ async function runExpandPrompt() {
   hideLoading();
 }
 
+
+
+function sendImageTo3D(imageUrl) {
+  if (!imageUrl) return;
+
+  const preview = document.getElementById('threedPreview');
+  if (preview) {
+    preview.innerHTML = `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;" />`;
+  }
+
+  fetch(imageUrl).then(r => r.blob()).then(blob => {
+    threedFile = new File([blob], 'selected.png', { type: 'image/png' });
+  }).catch(err => {
+    console.error('[3D] Could not prepare image:', err);
+  });
+
+  const threedTab = document.querySelector('[data-tab="threed"]');
+  if (threedTab) threedTab.click();
+}
+
+function sendImageToSketch(imageUrl) {
+  if (!imageUrl) return;
+
+  if (!window.Sketch || !Sketch.loadImage) {
+    alert('Sketch system is not ready.');
+    return;
+  }
+
+  Sketch.loadImage(imageUrl);
+  const sketchTab = document.querySelector('[data-tab="sketch"]');
+  if (sketchTab) sketchTab.click();
+}
+
+function initSketch() {
+  if (window.Sketch && Sketch.init) {
+    Sketch.init();
+  }
+}
+
 // ---- Gallery — mode-aware output routing ----
 function addToGallery(imageUrl) {
   generatedImages.unshift(imageUrl);
@@ -320,6 +420,7 @@ function addToGallery(imageUrl) {
           <img src="${imageUrl}" style="width:100%; height:100%; object-fit:contain; display:block;" />
           <div class="output-cell-actions">
             <button class="cell-btn" id="largeAddMag">+Mag</button>
+            <button class="cell-btn" id="largeSendSketch">Sketch</button>
             <button class="cell-btn" id="largeSend3D">→3D</button>
             <a class="cell-btn" href="${imageUrl}" download="flatdream.png">↓</a>
           </div>
@@ -328,6 +429,9 @@ function addToGallery(imageUrl) {
         Magazine.addImage(imageUrl);
         updateMagLibrary();
         document.querySelector('[data-tab="magazine"]').click();
+      });
+      document.getElementById('largeSendSketch')?.addEventListener('click', () => {
+        sendImageToSketch(imageUrl);
       });
       document.getElementById('largeSend3D')?.addEventListener('click', () => {
         document.getElementById('threedPreview').innerHTML =
@@ -355,6 +459,7 @@ function addToGallery(imageUrl) {
           <img src="${imageUrl}" style="width:100%; height:100%; object-fit:contain; display:block;" />
           <div class="output-cell-actions">
             <button class="cell-btn" id="img2imgAddMag">+Mag</button>
+            <button class="cell-btn" id="img2imgSendSketch">Sketch</button>
             <button class="cell-btn" id="img2imgSend3D">→3D</button>
             <a class="cell-btn" href="${imageUrl}" download="flatdream.png">↓</a>
           </div>
@@ -363,6 +468,9 @@ function addToGallery(imageUrl) {
         Magazine.addImage(imageUrl);
         updateMagLibrary();
         document.querySelector('[data-tab="magazine"]').click();
+      });
+      document.getElementById('img2imgSendSketch')?.addEventListener('click', () => {
+        sendImageToSketch(imageUrl);
       });
       document.getElementById('img2imgSend3D')?.addEventListener('click', () => {
         document.getElementById('threedPreview').innerHTML =
@@ -383,6 +491,7 @@ function addToGallery(imageUrl) {
           <img src="${imageUrl}" style="width:100%; height:100%; object-fit:contain; display:block;" />
           <div class="output-cell-actions">
             <button class="cell-btn" id="multiAddMag">+Mag</button>
+            <button class="cell-btn" id="multiSendSketch">Sketch</button>
             <button class="cell-btn" id="multiSend3D">→3D</button>
             <a class="cell-btn" href="${imageUrl}" download="flatdream.png">↓</a>
           </div>
@@ -391,6 +500,9 @@ function addToGallery(imageUrl) {
         Magazine.addImage(imageUrl);
         updateMagLibrary();
         document.querySelector('[data-tab="magazine"]').click();
+      });
+      document.getElementById('multiSendSketch')?.addEventListener('click', () => {
+        sendImageToSketch(imageUrl);
       });
       document.getElementById('multiSend3D')?.addEventListener('click', () => {
         document.getElementById('threedPreview').innerHTML =
@@ -475,6 +587,7 @@ function addThumbnail(imageUrl) {
 
   cell.innerHTML = `<div class="output-cell-actions">
     <button class="cell-btn" title="Add to Magazine">+M</button>
+    <button class="cell-btn" title="Send to Sketch">S</button>
     <button class="cell-btn" title="Send to 3D">3D</button>
     <a class="cell-btn" href="${imageUrl}" download="flatdream.png" title="Download">↓</a>
   </div>`;
@@ -485,6 +598,10 @@ function addThumbnail(imageUrl) {
     Magazine.addImage(imageUrl);
     updateMagLibrary();
     document.querySelector('[data-tab="magazine"]').click();
+  });
+  cell.querySelector('[title="Send to Sketch"]').addEventListener('click', e => {
+    e.stopPropagation();
+    sendImageToSketch(imageUrl);
   });
   cell.querySelector('[title="Send to 3D"]').addEventListener('click', e => {
     e.stopPropagation();
@@ -536,6 +653,7 @@ function updateMagLibrary() {
       <img src="${url}" class="mag-thumb-img" />
       <div class="mag-thumb-actions">
         <button class="mag-thumb-btn" data-action="addmag">+Mag</button>
+        <button class="mag-thumb-btn" data-action="sendsketch">Sketch</button>
         <a class="mag-thumb-btn" href="${url}" download="flatdream.png">↓ Save</a>
         <button class="mag-thumb-btn" data-action="send3d">→3D</button>
       </div>`;
@@ -543,6 +661,10 @@ function updateMagLibrary() {
     thumb.querySelector('[data-action="addmag"]').addEventListener('click', e => {
       e.stopPropagation();
       Magazine.addImage(url);
+    });
+    thumb.querySelector('[data-action="sendsketch"]').addEventListener('click', e => {
+      e.stopPropagation();
+      sendImageToSketch(url);
     });
     thumb.querySelector('[data-action="send3d"]').addEventListener('click', e => {
       e.stopPropagation();
@@ -824,3 +946,9 @@ function updateLoadingProgress(pct) {
     hookCurve.setAttribute('d', `M 11 ${b} Q 14 ${b + 6} 17 ${b}`);
   }
 }
+
+
+// Expose selected app helpers to other modules such as sketch.js
+window.addToGallery = addToGallery;
+window.sendImageToSketch = sendImageToSketch;
+window.sendImageTo3D = sendImageTo3D;

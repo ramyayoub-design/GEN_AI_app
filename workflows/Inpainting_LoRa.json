@@ -1,0 +1,616 @@
+{
+  "1057": {
+    "inputs": {
+      "value": "Add the sentence “2 + 2 = 5” clearly on the black screen, centered and readable, in stark white authoritarian typography. Keep the screen dark and oppressive"
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "String (Multiline)"
+    }
+  },
+  "1058": {
+    "inputs": {
+      "filename_prefix": "2026-06-08/20260608_010311_output",
+      "images": [
+        "1024:634",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "1060": {
+    "inputs": {
+      "image": "Screenshot 2026-06-08 005331.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "1062": {
+    "inputs": {
+      "mask": [
+        "1117",
+        0
+      ]
+    },
+    "class_type": "MaskPreview",
+    "_meta": {
+      "title": "Preview Mask"
+    }
+  },
+  "1063": {
+    "inputs": {
+      "value": "red lines"
+    },
+    "class_type": "PrimitiveStringMultiline",
+    "_meta": {
+      "title": "Sam prompt"
+    }
+  },
+  "1116": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "upscale_method": "nearest-exact",
+      "keep_proportion": "stretch",
+      "pad_color": "0, 0, 0",
+      "crop_position": "center",
+      "divisible_by": 2,
+      "device": "cpu",
+      "image": [
+        "1060",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJv2",
+    "_meta": {
+      "title": "Resize Image v2"
+    }
+  },
+  "1117": {
+    "inputs": {
+      "kernel_size": 40,
+      "sigma": 10,
+      "mask": [
+        "1113:1112",
+        0
+      ]
+    },
+    "class_type": "ImpactGaussianBlurMask",
+    "_meta": {
+      "title": "Gaussian Blur Mask"
+    }
+  },
+  "1113:1098": {
+    "inputs": {
+      "precision": "auto",
+      "compile": false
+    },
+    "class_type": "LoadSAM3Model",
+    "_meta": {
+      "title": "(Down)Load SAM3 Model"
+    }
+  },
+  "1113:1099": {
+    "inputs": {
+      "confidence_threshold": [
+        "1113:1107",
+        0
+      ],
+      "text_prompt": [
+        "1063",
+        0
+      ],
+      "max_detections": [
+        "1113:1106",
+        0
+      ],
+      "sam3_model_config": [
+        "1113:1098",
+        0
+      ],
+      "image": [
+        "1116",
+        0
+      ]
+    },
+    "class_type": "SAM3Grounding",
+    "_meta": {
+      "title": "SAM3 Text Segmentation"
+    }
+  },
+  "1113:1100": {
+    "inputs": {
+      "width": [
+        "1113:1104",
+        0
+      ],
+      "height": [
+        "1113:1104",
+        1
+      ],
+      "batch_size": 1,
+      "color": 0
+    },
+    "class_type": "EmptyImage",
+    "_meta": {
+      "title": "EmptyImage"
+    }
+  },
+  "1113:1101": {
+    "inputs": {
+      "x": 0,
+      "y": 0,
+      "offset_x": 0,
+      "offset_y": 0,
+      "destination": [
+        "1113:1100",
+        0
+      ],
+      "source": [
+        "1116",
+        0
+      ],
+      "mask": [
+        "1113:1108",
+        0
+      ]
+    },
+    "class_type": "ImageComposite+",
+    "_meta": {
+      "title": "🔧 Image Composite"
+    }
+  },
+  "1113:1102": {
+    "inputs": {
+      "images": [
+        "1113:1099",
+        1
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "1113:1103": {
+    "inputs": {
+      "indexes": [
+        "1113:1105",
+        0
+      ],
+      "err_if_missing": true,
+      "err_if_empty": true,
+      "mask": [
+        "1113:1099",
+        0
+      ]
+    },
+    "class_type": "VHS_SelectMasks",
+    "_meta": {
+      "title": "Select Masks 🎥🅥🅗🅢"
+    }
+  },
+  "1113:1104": {
+    "inputs": {
+      "image": [
+        "1116",
+        0
+      ]
+    },
+    "class_type": "GetImageSize",
+    "_meta": {
+      "title": "Get Image Size"
+    }
+  },
+  "1113:1105": {
+    "inputs": {
+      "value": "0"
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "String"
+    }
+  },
+  "1113:1106": {
+    "inputs": {
+      "value": -562514964268783
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "max_detections"
+    }
+  },
+  "1113:1107": {
+    "inputs": {
+      "value": 0.2
+    },
+    "class_type": "easy float",
+    "_meta": {
+      "title": "confidence_threshold"
+    }
+  },
+  "1113:1108": {
+    "inputs": {
+      "expand": 0,
+      "tapered_corners": true,
+      "mask": [
+        "1113:1103",
+        0
+      ]
+    },
+    "class_type": "GrowMask",
+    "_meta": {
+      "title": "Grow Mask"
+    }
+  },
+  "1113:1109": {
+    "inputs": {
+      "masks": [
+        "1113:1111",
+        0
+      ]
+    },
+    "class_type": "ImpactFlattenMask",
+    "_meta": {
+      "title": "Flatten Mask Batch"
+    }
+  },
+  "1113:1110": {
+    "inputs": {
+      "expand": 0,
+      "tapered_corners": true,
+      "mask": [
+        "1113:1109",
+        0
+      ]
+    },
+    "class_type": "GrowMask",
+    "_meta": {
+      "title": "Grow Mask"
+    }
+  },
+  "1113:1111": {
+    "inputs": {
+      "mask": [
+        "1113:1099",
+        0
+      ]
+    },
+    "class_type": "MaskListToMaskBatch",
+    "_meta": {
+      "title": "Mask List to Mask Batch"
+    }
+  },
+  "1113:1112": {
+    "inputs": {
+      "amount": 1,
+      "mask": [
+        "1113:1110",
+        0
+      ]
+    },
+    "class_type": "MaskSmooth+",
+    "_meta": {
+      "title": "🔧 Mask Smooth"
+    }
+  },
+  "1024:630": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
+  },
+  "1024:631": {
+    "inputs": {
+      "steps": [
+        "1024:643",
+        0
+      ],
+      "width": [
+        "1024:1065",
+        0
+      ],
+      "height": [
+        "1024:1065",
+        1
+      ]
+    },
+    "class_type": "Flux2Scheduler",
+    "_meta": {
+      "title": "Flux2Scheduler"
+    }
+  },
+  "1024:632": {
+    "inputs": {
+      "cfg": [
+        "1024:649",
+        0
+      ],
+      "model": [
+        "1024:1164",
+        0
+      ],
+      "positive": [
+        "1024:641",
+        0
+      ],
+      "negative": [
+        "1024:636",
+        0
+      ]
+    },
+    "class_type": "CFGGuider",
+    "_meta": {
+      "title": "CFGGuider"
+    }
+  },
+  "1024:633": {
+    "inputs": {
+      "noise": [
+        "1024:637",
+        0
+      ],
+      "guider": [
+        "1024:632",
+        0
+      ],
+      "sampler": [
+        "1024:630",
+        0
+      ],
+      "sigmas": [
+        "1024:631",
+        0
+      ],
+      "latent_image": [
+        "1024:1064",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  },
+  "1024:634": {
+    "inputs": {
+      "samples": [
+        "1024:633",
+        0
+      ],
+      "vae": [
+        "1024:640",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "1024:636": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "1024:1164",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "1024:637": {
+    "inputs": {
+      "noise_seed": [
+        "1024:642",
+        0
+      ]
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "1024:638": {
+    "inputs": {
+      "unet_name": "flux-2-klein-base-9b-fp8.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "1024:639": {
+    "inputs": {
+      "clip_name": "qwen_3_8b_fp8mixed.safetensors",
+      "type": "flux2",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Load CLIP"
+    }
+  },
+  "1024:640": {
+    "inputs": {
+      "vae_name": "flux2-vae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "1024:641": {
+    "inputs": {
+      "text": [
+        "1024:648",
+        0
+      ],
+      "clip": [
+        "1024:1164",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "1024:642": {
+    "inputs": {
+      "value": 1050835039511299
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "seed"
+    }
+  },
+  "1024:643": {
+    "inputs": {
+      "value": 20
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "steps"
+    }
+  },
+  "1024:646": {
+    "inputs": {
+      "value": "James"
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "author"
+    }
+  },
+  "1024:647": {
+    "inputs": {
+      "value": "FLUX.2 Text-to-Image"
+    },
+    "class_type": "PrimitiveString",
+    "_meta": {
+      "title": "model"
+    }
+  },
+  "1024:648": {
+    "inputs": {
+      "prompt": [
+        "1057",
+        0
+      ]
+    },
+    "class_type": "CR Prompt Text",
+    "_meta": {
+      "title": "⚙️ CR Prompt Text"
+    }
+  },
+  "1024:649": {
+    "inputs": {
+      "value": 5
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "cfg"
+    }
+  },
+  "1024:650": {
+    "inputs": {
+      "seed": [
+        "1024:642",
+        0
+      ],
+      "steps": [
+        "1024:643",
+        0
+      ],
+      "model": [
+        "1024:647",
+        0
+      ],
+      "author": [
+        "1024:646",
+        0
+      ],
+      "output_path": "[time(%Y-%m-%d)]",
+      "file_prefix": "[time(%Y%m%d_%H%M%S)]_param",
+      "wrap_width": 60,
+      "font_family": "Arial",
+      "font_size": 36,
+      "dark_mode": false,
+      "save_yaml": true,
+      "prompt": [
+        "1024:648",
+        0
+      ],
+      "negative_prompt": "",
+      "additional_text": ""
+    },
+    "class_type": "SaveParamsSVG",
+    "_meta": {
+      "title": "Save Params as SVG"
+    }
+  },
+  "1024:1064": {
+    "inputs": {
+      "grow_mask_by": 6,
+      "pixels": [
+        "1116",
+        0
+      ],
+      "vae": [
+        "1024:640",
+        0
+      ],
+      "mask": [
+        "1117",
+        0
+      ]
+    },
+    "class_type": "VAEEncodeForInpaint",
+    "_meta": {
+      "title": "VAE Encode (for Inpainting)"
+    }
+  },
+  "1024:1065": {
+    "inputs": {
+      "image": [
+        "1116",
+        0
+      ]
+    },
+    "class_type": "GetImageSize",
+    "_meta": {
+      "title": "Get Image Size"
+    }
+  },
+  "1024:1164": {
+    "inputs": {
+      "lora_name": "FLUX.2_9b\\torzev.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "1024:638",
+        0
+      ],
+      "clip": [
+        "1024:639",
+        0
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "Load LoRA (Model and CLIP)"
+    }
+  }
+}

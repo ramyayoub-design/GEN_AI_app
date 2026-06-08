@@ -300,3 +300,253 @@ const ComfyUI = (() => {
 
   return { textToImage, imageToImage, multiImage, imageTo3D, ping };
 })();
+
+// ============================================================
+// SKETCH → FLUX.2 INPAINTING WITH SAM3 MASK PROMPT
+// Uses workflows/Inpainting_LoRa.json
+// ============================================================
+
+if (typeof ComfyUI !== 'undefined') {
+  ComfyUI.sketchInpaintSam = async function (
+    prompt,
+    samPrompt,
+    flattenedImageDataUrl,
+    settings = {},
+    onProgress
+  ) {
+    const cfg = Config.get();
+    const comfyUrl = cfg.comfyUrl;
+
+    if (!comfyUrl) {
+      throw new Error('ComfyUI URL is missing in Config.');
+    }
+
+    if (!flattenedImageDataUrl) {
+      throw new Error('Missing flattened sketch image.');
+    }
+
+    if (typeof onProgress === 'function') onProgress(5);
+
+    // 1. Upload flattened sketch image to ComfyUI
+    const uploadedImageName = await uploadDataUrlToComfy(
+      comfyUrl,
+      flattenedImageDataUrl,
+      `flatdream_sketch_inpaint_${Date.now()}.png`
+    );
+
+    if (typeof onProgress === 'function') onProgress(15);
+
+    // 2. Load the workflow JSON
+    const workflowResp = await fetch('./workflows/Inpainting_LoRa.json');
+
+    if (!workflowResp.ok) {
+      throw new Error('Could not load workflows/Inpainting_LoRa.json');
+    }
+
+    const workflow = await workflowResp.json();
+
+    // 3. Patch workflow inputs
+
+    // Input image node
+    if (workflow['1060']) {
+      workflow['1060'].inputs.image = uploadedImageName;
+    } else {
+      throw new Error('Workflow node 1060 Load Image was not found.');
+    }
+
+    // Main generation prompt
+    if (workflow['1057']) {
+      workflow['1057'].inputs.value = prompt || '';
+    } else {
+      throw new Error('Workflow node 1057 Main Prompt was not found.');
+    }
+
+    // SAM3 mask prompt
+    if (workflow['1063']) {
+      workflow['1063'].inputs.value = samPrompt || 'blue sketch lines';
+    } else {
+      throw new Error('Workflow node 1063 SAM Mask Prompt was not found.');
+    }
+
+    // Negative prompt
+    if (workflow['1024:636']) {
+      workflow['1024:636'].inputs.text = settings.negativePrompt || '';
+    }
+
+    // Seed
+    if (workflow['1024:642']) {
+      const seed =
+        settings.seed === -1 || settings.seed === undefined || Number.isNaN(settings.seed)
+          ? Math.floor(Math.random() * 99999999999999)
+          : settings.seed;
+
+      workflow['1024:642'].inputs.value = seed;
+    }
+
+    // Steps
+    if (workflow['1024:643']) {
+      workflow['1024:643'].inputs.value = settings.steps || 20;
+    }
+
+    // CFG
+    if (workflow['1024:649']) {
+      workflow['1024:649'].inputs.value = settings.cfg || 2.5;
+    }
+
+    // LoRA strength
+    if (workflow['1024:1164']) {
+      const loraStrength =
+        settings.loraStrength !== undefined ? settings.loraStrength : 1.0;
+
+      workflow['1024:1164'].inputs.strength_model = loraStrength;
+      workflow['1024:1164'].inputs.strength_clip = loraStrength;
+    }
+
+    // Save image prefix
+    if (workflow['1058']) {
+      workflow['1058'].inputs.filename_prefix = `flatdream_sketch_inpaint_${Date.now()}`;
+    }
+
+    if (typeof onProgress === 'function') onProgress(25);
+
+    // 4. Queue workflow
+    const queueResp = await fetch(`${comfyUrl}/prompt`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt: workflow }),
+    });
+
+    if (!queueResp.ok) {
+      const errText = await queueResp.text();
+      throw new Error(`ComfyUI queue failed: ${queueResp.status} ${errText}`);
+    }
+
+    const queueData = await queueResp.json();
+    const promptId = queueData.prompt_id;
+
+    if (!promptId) {
+      throw new Error('ComfyUI did not return a prompt_id.');
+    }
+
+    if (typeof onProgress === 'function') onProgress(35);
+
+    // 5. Poll history until output is ready
+    const outputUrl = await waitForComfyImageOutput(
+      comfyUrl,
+      promptId,
+      onProgress
+    );
+
+    if (!outputUrl) {
+      throw new Error('No output image found from Sketch inpainting workflow.');
+    }
+
+    if (typeof onProgress === 'function') onProgress(100);
+
+    return outputUrl;
+  };
+}
+
+// Upload data URL image to ComfyUI /upload/image
+async function uploadDataUrlToComfy(comfyUrl, dataUrl, filename) {
+  const blob = await fetch(dataUrl).then(r => r.blob());
+
+  const formData = new FormData();
+  formData.append('image', blob, filename);
+  formData.append('type', 'input');
+  formData.append('overwrite', 'true');
+
+  const uploadResp = await fetch(`${comfyUrl}/upload/image`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!uploadResp.ok) {
+    const errText = await uploadResp.text();
+    throw new Error(`Image upload failed: ${uploadResp.status} ${errText}`);
+  }
+
+  const uploadData = await uploadResp.json();
+
+  if (!uploadData.name) {
+    throw new Error('ComfyUI upload did not return an image name.');
+  }
+
+  return uploadData.name;
+}
+
+// Wait for ComfyUI history and return the first generated image URL
+async function waitForComfyImageOutput(comfyUrl, promptId, onProgress) {
+  for (let i = 0; i < 300; i++) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    if (typeof onProgress === 'function') {
+      const pct = Math.min(95, 35 + i * 0.5);
+      onProgress(pct);
+    }
+
+    const histResp = await fetch(`${comfyUrl}/history/${promptId}`);
+
+    if (!histResp.ok) {
+      continue;
+    }
+
+    const hist = await histResp.json();
+    const job = hist[promptId];
+
+    if (!job) continue;
+
+    if (job.status && job.status.completed) {
+      const outputUrl = findFirstImageUrlFromComfyOutputs(comfyUrl, job.outputs);
+
+      if (outputUrl) {
+        return outputUrl;
+      }
+
+      throw new Error('Workflow completed, but no output image was found.');
+    }
+
+    if (job.status && job.status.status_str === 'error') {
+      throw new Error('ComfyUI workflow failed.');
+    }
+  }
+
+  throw new Error('Timed out waiting for ComfyUI output.');
+}
+
+// Find first image from ComfyUI history outputs
+function findFirstImageUrlFromComfyOutputs(comfyUrl, outputs) {
+  if (!outputs) return null;
+
+  for (const nodeId in outputs) {
+    const node = outputs[nodeId];
+
+    if (!node) continue;
+
+    const imageList = [];
+
+    if (Array.isArray(node.images)) {
+      imageList.push(...node.images);
+    }
+
+    if (Array.isArray(node.gifs)) {
+      imageList.push(...node.gifs);
+    }
+
+    for (const img of imageList) {
+      if (!img) continue;
+
+      const filename = img.filename;
+      const subfolder = img.subfolder || '';
+      const type = img.type || 'output';
+
+      if (!filename) continue;
+
+      return `${comfyUrl}/view?filename=${encodeURIComponent(filename)}&type=${encodeURIComponent(type)}&subfolder=${encodeURIComponent(subfolder)}`;
+    }
+  }
+
+  return null;
+}

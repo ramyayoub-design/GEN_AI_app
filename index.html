@@ -55,6 +55,8 @@
   <nav class="app-nav">
     <button class="nav-btn active" data-tab="generate"><span class="nav-arrow">→</span> Generate</button>
     <button class="nav-btn" data-tab="magazine"><span class="nav-arrow">→</span> Magazine</button>
+    <button class="nav-btn" data-tab="sketch"><span class="nav-arrow">→</span> Sketch</button>
+    <button class="nav-btn" data-tab="modelshot"><span class="nav-arrow">→</span> Model Shot</button>
     <button class="nav-btn" data-tab="threed"><span class="nav-arrow">→</span> 3D</button>
   </nav>
 
@@ -455,6 +457,302 @@
 
 
 
+
+<!-- =================== SKETCH TAB =================== -->
+<div class="tab-content" id="tab-sketch">
+  <div class="sketch-layout sketch-layout-three-col">
+
+    <!-- LEFT SIDEBAR: INPUT + REGENERATE SETTINGS -->
+    <aside class="gen-sidebar sketch-left-sidebar">
+
+      <div class="sidebar-section">
+        <div class="section-sign">Input</div>
+        <div class="section-body">
+          <p class="sidebar-note">
+            Send an image here from Generate, then draw or add text on top.
+          </p>
+
+          <button class="btn-outline-dark" id="sketchUploadBtn" type="button">
+            + Upload Image
+          </button>
+
+          <input
+            type="file"
+            id="sketchUploadInput"
+            accept="image/*"
+            style="display:none;"
+          />
+
+          <button class="btn-outline-dark" id="sketchClearImageBtn" type="button" style="margin-top:6px;">
+            Clear Sketch
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">Regenerate</div>
+        <div class="section-body">
+
+          <label class="gen-neg-label" for="sketchPrompt">Prompt</label>
+          <textarea
+            id="sketchPrompt"
+            class="gen-neg-textarea"
+            placeholder="Describe how ComfyUI should regenerate this edited sketch..."
+          ></textarea>
+
+          <label class="gen-neg-label" for="sketchSamPrompt">SAM Mask Prompt</label>
+          <textarea
+            id="sketchSamPrompt"
+            class="gen-neg-textarea"
+            placeholder="Describe what SAM should mask, e.g. blue sketch lines, red marks, text labels, structural legs..."
+          ></textarea>
+
+          <div class="gen-field-row">
+            <span class="gen-field-label">Width</span>
+            <input type="number" id="sketchWidth" class="gen-num-input" min="256" max="2048" step="64" value="1024" />
+          </div>
+
+          <div class="gen-field-row">
+            <span class="gen-field-label">Height</span>
+            <input type="number" id="sketchHeight" class="gen-num-input" min="256" max="2048" step="64" value="1024" />
+          </div>
+
+          <div class="gen-field-row">
+            <span class="gen-field-label">Steps</span>
+            <input type="number" id="sketchSteps" class="gen-num-input" min="1" max="150" step="1" value="20" />
+          </div>
+
+          <div class="gen-field-row">
+            <span class="gen-field-label">Seed</span>
+            <input type="number" id="sketchSeed" class="gen-num-input" min="-1" step="1" value="1" />
+          </div>
+
+          <div class="filter-row" style="margin-top:8px;">
+            <span class="filter-label">CFG Scale</span>
+            <span class="filter-value" id="sketchCfgVal">2.5</span>
+          </div>
+          <input type="range" class="filter-slider" id="sketchCfgSlider" min="1" max="20" step="0.5" value="2.5" />
+
+          <div class="filter-row" style="margin-top:8px;">
+            <span class="filter-label">Denoise</span>
+            <span class="filter-value" id="sketchDenoiseVal">0.55</span>
+          </div>
+          <input type="range" class="filter-slider" id="sketchDenoise" min="0" max="1" step="0.05" value="0.55" />
+
+          <label class="gen-neg-label" for="sketchNegativePrompt">Negative Prompt</label>
+          <textarea
+            id="sketchNegativePrompt"
+            class="gen-neg-textarea"
+            placeholder="e.g. blurry, low quality"
+          ></textarea>
+
+          <button class="btn-generate" id="sketchGenerateBtn" type="button">
+            ▶ Regenerate
+          </button>
+
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER MAIN VIEWPORT -->
+    <main class="gen-main sketch-main">
+      <div class="billboard-row">
+        <div class="billboard billboard-yellow">Sketch</div>
+        <div class="billboard billboard-outline" id="sketchStatusBillboard">READY</div>
+      </div>
+
+      <div class="sketch-two-frame">
+
+        <!-- LEFT FRAME: EDITABLE SKETCH -->
+        <div class="sketch-frame sketch-edit-frame">
+          <div class="sketch-frame-label">Sketch Edit</div>
+
+          <div class="sketch-frame-inner" id="sketchEditFrame">
+            <div class="sketch-canvas-wrap" id="sketchCanvasWrap">
+              <canvas id="sketchBaseCanvas"></canvas>
+              <canvas id="sketchDrawCanvas"></canvas>
+
+              <!-- Text objects will be added here by JS -->
+              <div id="sketchTextLayer" class="sketch-text-layer"></div>
+            </div>
+
+            <div class="sketch-empty" id="sketchEmptyState">
+              Send an image to Sketch first
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT FRAME: GENERATED OUTPUT -->
+        <div class="sketch-frame sketch-output-frame">
+          <div class="sketch-frame-label">Generated Output</div>
+
+          <div class="sketch-frame-inner" id="sketchOutputFrame">
+            <div class="sketch-empty">
+              Regenerated image will appear here
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- RIGHT TOOLBAR: SKETCH TOOLS ONLY -->
+    <aside class="sketch-right-toolbar">
+
+      <div class="sketch-tool-title">Tools</div>
+
+      <button class="sketch-tool-btn active" id="sketchDrawBtn" type="button" title="Free Draw">
+        ✎
+        <span>Draw</span>
+      </button>
+
+      <button class="sketch-tool-btn" id="sketchLineBtn" type="button" title="Straight Line">
+        ╱
+        <span>Line</span>
+      </button>
+
+      <button class="sketch-tool-btn" id="sketchTextBtn" type="button" title="Text">
+        T
+        <span>Text</span>
+      </button>
+
+      <button class="sketch-tool-btn" id="sketchMoveBtn" type="button" title="Move Text">
+        ↕
+        <span>Move</span>
+      </button>
+
+      <button class="sketch-tool-btn" id="sketchEraseBtn" type="button" title="Eraser">
+        ⌫
+        <span>Erase</span>
+      </button>
+
+      <div class="sketch-tool-divider"></div>
+
+      <label class="sketch-tool-label" for="sketchBrushSize">Brush</label>
+      <span class="sketch-tool-value" id="sketchBrushSizeVal">6</span>
+      <input type="range" id="sketchBrushSize" min="1" max="40" step="1" value="6" class="sketch-tool-slider" />
+
+      <label class="sketch-tool-label" for="sketchTextSize">Text</label>
+      <span class="sketch-tool-value" id="sketchTextSizeVal">32</span>
+      <input type="range" id="sketchTextSize" min="8" max="120" step="1" value="32" class="sketch-tool-slider" />
+
+      <label class="sketch-tool-label" for="sketchColor">Color</label>
+      <input type="color" id="sketchColor" value="#E24B4A" class="sketch-toolbar-color" />
+
+      <button class="sketch-tool-clear" id="sketchClearBtn" type="button">
+        Clear Overlay
+      </button>
+
+    </aside>
+
+  </div>
+</div>
+
+    <!-- =================== MODEL SHOT TAB =================== -->
+<div class="tab-content" id="tab-modelshot">
+  <div class="modelshot-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="gen-sidebar modelshot-sidebar">
+
+      <div class="sidebar-section">
+        <div class="section-sign">Input</div>
+        <div class="section-body">
+          <p class="sidebar-note">
+            Upload a GLB model, navigate the view, then capture the camera angle as an image.
+          </p>
+
+          <button class="btn-outline-dark" id="modelshotUploadBtn" type="button">
+            + Upload GLB
+          </button>
+
+          <input
+            type="file"
+            id="modelshotFileInput"
+            accept=".glb,model/gltf-binary"
+            style="display:none;"
+          />
+
+          <button class="btn-outline-dark" id="modelshotResetCameraBtn" type="button" style="margin-top:6px;">
+            Reset Camera
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">Capture</div>
+        <div class="section-body">
+          <button class="btn-generate" id="modelshotCaptureBtn" type="button">
+            Capture View
+          </button>
+
+          <a
+            class="btn-outline-dark"
+            id="modelshotDownloadBtn"
+            download="modelshot.png"
+            style="display:none; margin-top:6px; text-align:center; text-decoration:none;"
+          >
+            Download PNG
+          </a>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">Send To</div>
+        <div class="section-body">
+          <button class="btn-outline-dark" id="modelshotSendImg2ImgBtn" type="button">
+            Image → Image
+          </button>
+
+          <button class="btn-outline-dark" id="modelshotSendMulti1Btn" type="button" style="margin-top:6px;">
+            Multi Ref 1
+          </button>
+
+          <button class="btn-outline-dark" id="modelshotSendMulti2Btn" type="button" style="margin-top:6px;">
+            Multi Ref 2
+          </button>
+
+          <button class="btn-outline-dark" id="modelshotSendSketchBtn" type="button" style="margin-top:6px;">
+            Sketch
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">Captured Shot</div>
+        <div class="section-body">
+          <div class="modelshot-capture-preview modelshot-sidebar-preview" id="modelshotCapturePreview">
+            <span>No capture yet</span>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- MAIN VIEWER -->
+    <main class="gen-main modelshot-main">
+
+      <div class="billboard-row">
+        <div class="billboard billboard-blue">Model Shot</div>
+        <div class="billboard billboard-outline" id="modelshotStatusBillboard">READY</div>
+      </div>
+
+      <div class="modelshot-viewer-wrap" id="modelshotViewerWrap">
+        <canvas id="modelshotCanvas"></canvas>
+
+        <div class="modelshot-empty" id="modelshotEmpty">
+          <p>Upload a GLB model to start</p>
+          <p style="font-size:9px; opacity:0.4; margin-top:8px;">
+            Orbit · zoom · pan · capture current view
+          </p>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+</div>
+
     <!-- =================== 3D TAB =================== -->
     <div class="tab-content" id="tab-threed">
       <div class="threed-layout">
@@ -585,7 +883,9 @@
   <script src="js/comicpanels.js"></script>
   <script src="js/comicbubbles.js"></script>
   <script src="js/magazine.js"></script>
+  <script src="js/sketch.js"></script>
   <script src="js/app.js"></script>
+
   <script type="importmap">
   {
     "imports": {
@@ -594,6 +894,8 @@
     }
   }
   </script>
+
+  <script type="module" src="js/modelshot.js"></script>
   <script type="module" src="js/viewer3d.js"></script>
 </body>
 </html>
