@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlatDream</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" type="image/png" href="./data/logo.png">
+
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-left">
+      <img src="data/logo.png" class="header-logo" alt="FlatDream Logo" />
+      <div class="header-title-block">
+        <span class="app-title">FlatDream</span>
+        <span class="app-sub">Archigram LoRA Interface · Ramy Ayoub - Tue Minh</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="status-cluster">
+        <div class="status-item">
+          <div class="status-dot" id="comfyDot"></div>
+          <span class="status-label">ComfyUI</span>
+        </div>
+        <div class="status-item">
+          <div class="status-dot" id="lmDot"></div>
+          <span class="status-label">LM Studio</span>
+        </div>
+        <div class="status-item">
+          <div class="status-dot" id="comfy3dDot"></div>
+          <span class="status-label">3D</span>
+        </div>
+      </div>
+      <button class="btn-outline" id="configBtn">Config</button>
+      <div class="header-bars">
+        <div class="bar bar-red"></div>
+        <div class="bar bar-blue"></div>
+        <div class="bar bar-yellow"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MARQUEE -->
+  <div class="marquee-strip">
+    <div class="marquee-content">
+      ▶ FLATDREAM · TORZEV LORA · TEXT TO IMAGE · IMAGE TO IMAGE · MULTI REFERENCE · MAGAZINE BUILDER · 3D GENERATION · ARCHIGRAM INTERFACE · IAAC GENAI 2026 · RAMY AYOUB . Tue Minh·&nbsp;
+      ▶ FLATDREAM · TORZEV LORA · TEXT TO IMAGE · IMAGE TO IMAGE · MULTI REFERENCE · MAGAZINE BUILDER · 3D GENERATION · ARCHIGRAM INTERFACE · IAAC GENAI 2026 · RAMY AYOUB . Tue Minh·&nbsp;
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="app-nav">
+    <button class="nav-btn active" data-tab="generate"><span class="nav-arrow">→</span> Generate</button>
+    <button class="nav-btn" data-tab="magazine"><span class="nav-arrow">→</span> Magazine</button>
+    <button class="nav-btn" data-tab="sketch"><span class="nav-arrow">→</span> Sketch</button>
+    <button class="nav-btn" data-tab="modelshot"><span class="nav-arrow">→</span> Model Shot</button>
+    <button class="nav-btn" data-tab="threed"><span class="nav-arrow">→</span> 3D</button>
+  </nav>
+
+  <!-- MAIN BODY -->
+  <div class="app-body">
+
+    <!-- =================== GENERATE TAB =================== -->
+    <div class="tab-content active" id="tab-generate">
+      <div class="generate-layout">
+
+        <!-- LEFT SIDEBAR -->
+        <aside class="gen-sidebar">
+
+          <div class="sidebar-section">
+            <div class="section-sign">Mode</div>
+            <div class="section-body">
+              <button class="mode-btn active" data-mode="txt2img">Text → Image</button>
+              <button class="mode-btn" data-mode="img2img">Image → Image</button>
+              <button class="mode-btn" data-mode="multiimg">Multi Reference</button>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="section-sign">LoRA</div>
+            <div class="section-body">
+              <div class="lora-badge">torzev</div>
+              <div class="callout-row">
+                <span class="callout-line"></span>
+                <span class="callout-text" id="loraStrengthLabel">strength 1.0</span>
+              </div>
+              <input type="range" id="loraStrengthSlider" min="0" max="2" step="0.05" value="1.0" class="strength-slider" />
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="section-sign">Style</div>
+            <div class="section-body">
+              <select id="styleSelect" class="select-field">
+                <option value="technical ink illustration, section elevation, flat color fills, orthographic">Section Elevation</option>
+                <option value="technical ink illustration, isometric cutaway, flat color fills, bird's eye view">Isometric Cutaway</option>
+                <option value="technical ink illustration, duotone screen print, high contrast, single color">Duotone Print</option>
+                <option value="technical ink illustration, oblique perspective, flat color fills, three-quarter view">Oblique View</option>
+                <option value="technical ink illustration, street perspective, vanishing point, eye-level">Street Perspective</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Generation Settings -->
+          <div class="sidebar-section">
+            <div class="section-sign">Generation</div>
+            <div class="section-body">
+
+              <div class="gen-field-row">
+                <span class="gen-field-label">Width</span>
+                <input type="number" id="genWidth" class="gen-num-input" min="256" max="2048" step="64" value="1024" />
+              </div>
+
+              <div class="gen-field-row">
+                <span class="gen-field-label">Height</span>
+                <input type="number" id="genHeight" class="gen-num-input" min="256" max="2048" step="64" value="1024" />
+              </div>
+
+              <div class="gen-field-row">
+                <span class="gen-field-label">Steps</span>
+                <input type="number" id="genSteps" class="gen-num-input" min="1" max="150" step="1" value="20" />
+              </div>
+
+              <div class="gen-field-row">
+                <span class="gen-field-label">Seed</span>
+                <input type="number" id="genSeed" class="gen-num-input" min="-1" step="1" placeholder="random" />
+              </div>
+
+              <div class="filter-row" style="margin-top:8px;">
+                <span class="filter-label">CFG Scale</span>
+                <span class="filter-value" id="genCfgVal">7</span>
+              </div>
+              <input type="range" class="filter-slider" id="genCfgSlider" min="1" max="20" step="0.5" value="7" />
+
+              <label class="gen-neg-label" for="genNegativePrompt">Negative Prompt</label>
+              <textarea id="genNegativePrompt" class="gen-neg-textarea"
+                placeholder="e.g. blurry, photorealistic, low quality"></textarea>
+
+              <button class="btn-outline-dark" id="genSettingsResetBtn" style="margin-top:8px;">Reset</button>
+
+            </div>
+          </div>
+
+        </aside>
+
+        <!-- MAIN GENERATE AREA -->
+        <main class="gen-main">
+
+          <!-- SVG crane decoration -->
+          <svg class="crane-svg" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+            <line x1="70" y1="120" x2="70" y2="15" stroke="#f5f0e8" stroke-width="3" opacity="0.15"/>
+            <line x1="70" y1="20" x2="15" y2="20" stroke="#f5f0e8" stroke-width="2.5" opacity="0.15"/>
+            <line x1="70" y1="20" x2="90" y2="20" stroke="#f5f0e8" stroke-width="2" opacity="0.15"/>
+            <line x1="30" y1="20" x2="30" y2="45" stroke="#f5f0e8" stroke-width="1" stroke-dasharray="2,3" opacity="0.15"/>
+            <rect x="22" y="45" width="16" height="11" fill="#E24B4A" opacity="0.6" rx="1"/>
+            <rect x="65" y="10" width="10" height="10" fill="#EF9F27" opacity="0.6" rx="1"/>
+          </svg>
+
+          <!-- Billboard -->
+          <div class="billboard-row">
+            <div class="billboard billboard-red" id="modeBillboard">TEXT → IMAGE</div>
+            <div class="billboard billboard-outline" id="statusBillboard">READY</div>
+          </div>
+
+          <!-- Mode content — scrolls internally, never the whole page -->
+          <div class="gen-mode-content" id="genModeContent">
+
+            <!-- ===== SCREEN 1: Text to Image ===== -->
+            <div class="mode-panel active" id="panel-txt2img">
+              <div class="txt2img-center">
+                <!-- Square image preview, 50% width, centered -->
+                <div id="largePreview" class="large-preview">
+                  <span class="large-preview-empty">Generated image will appear here</span>
+                </div>
+                <!-- Prompt used displayed below -->
+                <div id="lastPromptDisplay" class="last-prompt-display"></div>
+                <!-- Thumbnail history strip -->
+                <div class="thumb-strip-wrap">
+                  <div class="thumb-strip-header">
+                    <span class="output-label">History</span>
+                    <span class="output-count" id="outputCount">0</span>
+                  </div>
+                  <div class="output-grid" id="outputGrid">
+                    <span class="output-empty">No images yet</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== SCREEN 2: Image to Image ===== -->
+            <div class="mode-panel" id="panel-img2img">
+              <div class="two-col-fill">
+                <!-- Left 50%: upload zone, full height, dashed orange border -->
+                <div class="col-input">
+                  <div class="col-upload-zone" id="img2imgUploadZone">
+                    <input type="file" id="img2imgFile" accept="image/*" style="display:none;" />
+                    <div class="col-upload-inner" id="img2imgPreview">
+                      <span class="col-zone-label">INPUT IMAGE</span>
+                      <span class="col-zone-hint">Click or drag</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Right 50%: output, full height, dashed red border -->
+                <div class="col-output">
+                  <div class="col-output-zone" id="img2imgOutput">
+                    <div class="col-output-inner">
+                      <span class="col-zone-label">GENERATED OUTPUT</span>
+                      <span class="col-zone-hint">Appears here</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== SCREEN 3: Multi Reference ===== -->
+            <div class="mode-panel" id="panel-multiimg">
+              <div class="two-col-fill">
+                <!-- Left 50%: two stacked upload zones -->
+                <div class="col-input">
+                  <div class="multi-upload-half" id="multi1UploadZone">
+                    <input type="file" id="multi1File" accept="image/*" style="display:none;" />
+                    <div class="col-upload-inner" id="multi1Preview">
+                      <span class="col-zone-label">REFERENCE 1</span>
+                      <span class="col-zone-hint">Click or drag</span>
+                    </div>
+                  </div>
+                  <div class="multi-upload-half" id="multi2UploadZone">
+                    <input type="file" id="multi2File" accept="image/*" style="display:none;" />
+                    <div class="col-upload-inner" id="multi2Preview">
+                      <span class="col-zone-label">REFERENCE 2</span>
+                      <span class="col-zone-hint">Click or drag</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Right 50%: output, full height, dashed red border -->
+                <div class="col-output">
+                  <div class="col-output-zone" id="multiimgOutput">
+                    <div class="col-output-inner">
+                      <span class="col-zone-label">GENERATED OUTPUT</span>
+                      <span class="col-zone-hint">Appears here</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /gen-mode-content -->
+
+          <!-- Prompt bar — fixed at bottom, never scrolls away -->
+          <div class="gen-prompt-bar">
+            <textarea id="mainPrompt" class="prompt-textarea" rows="3"
+              placeholder="Describe your architectural scene… trigger word torzev is added automatically"></textarea>
+            <div class="gen-prompt-bar-actions">
+              <button class="btn-expand-inline" id="expandPromptBtn">Expand with LLM ↗</button>
+              <button class="btn-gen-inline" id="mainGenBtn">▶ Generate</button>
+            </div>
+          </div>
+
+          <!-- Loading overlay — local to gen-main -->
+          <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+            <div class="loading-box">
+              <svg class="loading-crane" viewBox="0 0 100 140" id="loadingCraneSvg">
+                <line x1="55" y1="140" x2="55" y2="10" stroke="#E24B4A" stroke-width="3"/>
+                <line x1="8" y1="24" x2="68" y2="24" stroke="#E24B4A" stroke-width="2.5"/>
+                <line x1="55" y1="24" x2="88" y2="24" stroke="#E24B4A" stroke-width="2"/>
+                <rect x="80" y="16" width="12" height="14" fill="#378ADD" rx="1"/>
+                <rect x="50" y="10" width="10" height="10" fill="#EF9F27" rx="1"/>
+                <line x1="14" y1="24" x2="14" y2="38" id="craneCable"
+                      stroke="#f5f0e8" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.9"/>
+                <rect x="8" y="38" width="12" height="8" id="craneHookBody" fill="#EF9F27" rx="1"/>
+                <path id="craneHookCurve" d="M 11 46 Q 14 52 17 46"
+                      stroke="#EF9F27" stroke-width="2" fill="none"/>
+              </svg>
+              <p class="loading-msg" id="loadingMsg">Generating…</p>
+              <div class="progress-bar-track" style="width:220px; margin-top:4px;">
+                <div class="progress-bar-fill" id="loadingProgressBar" style="width:0%;"></div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+      </div>
+    </div>
+
+    <!-- =================== MAGAZINE TAB =================== -->
+<div class="tab-content" id="tab-magazine">
+  <div class="magazine-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="mag-sidebar mag-left-sidebar">
+      <div class="sidebar-section">
+        <div class="section-sign">Library</div>
+        <div class="section-body">
+          <button class="btn-outline-dark" id="magUploadImageBtn" style="margin-bottom:6px; width:100%;">+ Upload Image</button>
+          <input type="file" id="magUploadImageInput" accept="image/*" style="display:none;" />
+          <div class="mag-library" id="magUploadLibrary"></div>
+          <div class="mag-library" id="magLibrary">
+            <p class="mag-no-sel">Generated images appear here</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">Export</div>
+        <div class="section-body">
+          <button class="btn-generate" id="magExportBtn">Export PNG</button>
+          <button class="btn-outline-dark" id="magClearBtn" style="margin-top:6px;">Clear All</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">LoRA</div>
+        <div class="section-body">
+          <div class="lora-badge">torzev</div>
+          <div class="callout-row">
+            <span class="callout-line"></span>
+            <span class="callout-text" id="magLoraStrengthLabel">strength 1.0</span>
+          </div>
+          <input type="range" id="magLoraStrengthSlider" min="0" max="2" step="0.05" value="1.0" class="strength-slider" />
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">Style</div>
+        <div class="section-body">
+          <select id="magStyleSelect" class="select-field">
+            <option value="technical ink illustration, section elevation, flat color fills, orthographic">Section Elevation</option>
+            <option value="technical ink illustration, isometric cutaway, flat color fills, bird's eye view">Isometric Cutaway</option>
+            <option value="technical ink illustration, duotone screen print, high contrast, single color">Duotone Print</option>
+            <option value="technical ink illustration, oblique perspective, flat color fills, three-quarter view">Oblique View</option>
+            <option value="technical ink illustration, street perspective, vanishing point, eye-level">Street Perspective</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">Generation</div>
+        <div class="section-body">
+          <div class="gen-field-row">
+            <span class="gen-field-label">Width</span>
+            <input type="number" id="magGenWidth" class="gen-num-input" min="256" max="2048" step="64" value="1024" />
+          </div>
+          <div class="gen-field-row">
+            <span class="gen-field-label">Height</span>
+            <input type="number" id="magGenHeight" class="gen-num-input" min="256" max="2048" step="64" value="1024" />
+          </div>
+          <div class="gen-field-row">
+            <span class="gen-field-label">Steps</span>
+            <input type="number" id="magGenSteps" class="gen-num-input" min="1" max="150" step="1" value="20" />
+          </div>
+          <div class="gen-field-row">
+            <span class="gen-field-label">Seed</span>
+            <input type="number" id="magGenSeed" class="gen-num-input" min="-1" step="1" placeholder="random" />
+          </div>
+          <div class="filter-row" style="margin-top:8px;">
+            <span class="filter-label">CFG Scale</span>
+            <span class="filter-value" id="magGenCfgVal">5</span>
+          </div>
+          <input type="range" class="filter-slider" id="magGenCfgSlider" min="1" max="20" step="0.5" value="5" />
+          <label class="gen-neg-label" for="magPanelPrompt">Panel Prompt</label>
+          <textarea id="magPanelPrompt" class="gen-neg-textarea" placeholder="Write the prompt for the selected comic panel..."></textarea>
+          <button class="btn-expand-inline" id="magEnhancePromptBtn" style="margin-top:4px;">Enhance with LLM ↗</button>
+          <button class="btn-outline-dark" id="magGenSettingsResetBtn" style="margin-top:8px;">Reset</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER CANVAS -->
+    <main class="mag-main">
+
+      <!-- Comic layout picker only -->
+      <div class="mag-layout-picker">
+        <span class="mag-layout-picker-label">Comic Layout →</span>
+
+        <div class="mag-layout-thumb active" data-layout="cut4" title="4 Panel Comic">
+          <svg viewBox="0 0 56 75" fill="none">
+            <polygon points="2,2 26,2 24,37 2,36" fill="#2a2a2a" stroke="#E24B4A" stroke-width="1"/>
+            <polygon points="28,2 54,2 54,34 30,36" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <polygon points="2,38 24,37 26,73 2,73" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <polygon points="30,36 54,34 54,73 28,73" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+          </svg>
+          <span class="mag-layout-thumb-label">4 Cut</span>
+        </div>
+
+        <div class="mag-layout-thumb" data-layout="cut3" title="3 Panel Comic">
+          <svg viewBox="0 0 56 75" fill="none">
+            <polygon points="2,2 54,2 54,26 2,24" fill="#2a2a2a" stroke="#E24B4A" stroke-width="1"/>
+            <polygon points="2,26 26,26 28,73 2,73" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <polygon points="28,26 54,26 54,73 30,73" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+          </svg>
+          <span class="mag-layout-thumb-label">3 Cut</span>
+        </div>
+
+        <div class="mag-layout-thumb" data-layout="cut5" title="5 Panel Comic">
+          <svg viewBox="0 0 56 75" fill="none">
+            <polygon points="2,2 18,2 16,42 2,41" fill="#2a2a2a" stroke="#E24B4A" stroke-width="1"/>
+            <polygon points="20,2 36,2 36,42 18,42" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <polygon points="38,2 54,2 54,40 38,40" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <polygon points="2,43 26,43 24,73 2,73" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <polygon points="28,43 54,43 54,73 26,73" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+          </svg>
+          <span class="mag-layout-thumb-label">5 Cut</span>
+        </div>
+
+        <div class="mag-layout-thumb" data-layout="cut6" title="6 Panel Comic">
+          <svg viewBox="0 0 56 75" fill="none">
+            <polygon points="2,2 18,2 16,36 2,35" fill="#2a2a2a" stroke="#E24B4A" stroke-width="1"/>
+            <polygon points="20,2 36,2 36,35 18,35" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <polygon points="38,2 54,2 54,34 38,34" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <polygon points="2,37 16,36 18,73 2,73" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <polygon points="20,35 36,35 36,73 18,73" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+            <polygon points="38,34 54,34 54,73 36,73" fill="#2a2a2a" stroke="#555" stroke-width="1"/>
+          </svg>
+          <span class="mag-layout-thumb-label">6 Cut</span>
+        </div>
+
+        <div class="mag-zoom-controls">
+          <button class="mag-zoom-btn" id="magZoomOut" title="Zoom out">−</button>
+          <span class="mag-zoom-label" id="magZoomLabel">100%</span>
+          <button class="mag-zoom-btn" id="magZoomIn" title="Zoom in">+</button>
+        </div>
+      </div>
+
+      <!-- Centered comic page -->
+      <div class="mag-canvas-wrap">
+        <div class="magazine-canvas" id="magazineCanvas">
+          <div class="mag-empty">
+            <div class="mag-empty-icon">[ ]</div>
+            <p>Click + Library or ⚡ Generate in any panel</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT BUBBLE SIDEBAR -->
+    <aside class="mag-bubble-sidebar">
+      <div class="sidebar-section" id="comicBubbleSection">
+        <div class="section-sign">Speech Bubbles</div>
+        <div class="section-body">
+          <p class="sidebar-note">Select a comic panel, then add and edit bubbles here.</p>
+
+          <div class="comic-bubble-actions">
+            <button class="comic-add-bubble-btn" id="comicAddBubbleBtn">+ Add Bubble</button>
+            <button class="comic-clear-bubbles-btn" id="comicClearBubblesBtn">Clear All</button>
+          </div>
+
+          <div id="comicBubbleList"></div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+
+
+
+<!-- =================== SKETCH TAB =================== -->
+<div class="tab-content" id="tab-sketch">
+  <div class="sketch-layout sketch-layout-three-col">
+
+    <!-- LEFT SIDEBAR: INPUT + REGENERATE SETTINGS -->
+    <aside class="gen-sidebar sketch-left-sidebar">
+
+      <div class="sidebar-section">
+        <div class="section-sign">Input</div>
+        <div class="section-body">
+          <p class="sidebar-note">
+            Send an image here from Generate, then draw or add text on top.
+          </p>
+
+          <button class="btn-outline-dark" id="sketchUploadBtn" type="button">
+            + Upload Image
+          </button>
+
+          <input
+            type="file"
+            id="sketchUploadInput"
+            accept="image/*"
+            style="display:none;"
+          />
+
+          <button class="btn-outline-dark" id="sketchClearImageBtn" type="button" style="margin-top:6px;">
+            Clear Sketch
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">Regenerate</div>
+        <div class="section-body">
+
+          <label class="gen-neg-label" for="sketchPrompt">Prompt</label>
+          <textarea
+            id="sketchPrompt"
+            class="gen-neg-textarea"
+            placeholder="Describe how ComfyUI should regenerate this edited sketch..."
+          ></textarea>
+
+          <label class="gen-neg-label" for="sketchSamPrompt">SAM Mask Prompt</label>
+          <textarea
+            id="sketchSamPrompt"
+            class="gen-neg-textarea"
+            placeholder="Describe what SAM should mask, e.g. blue sketch lines, red marks, text labels, structural legs..."
+          ></textarea>
+
+          <div class="gen-field-row">
+            <span class="gen-field-label">Width</span>
+            <input type="number" id="sketchWidth" class="gen-num-input" min="256" max="2048" step="64" value="1024" />
+          </div>
+
+          <div class="gen-field-row">
+            <span class="gen-field-label">Height</span>
+            <input type="number" id="sketchHeight" class="gen-num-input" min="256" max="2048" step="64" value="1024" />
+          </div>
+
+          <div class="gen-field-row">
+            <span class="gen-field-label">Steps</span>
+            <input type="number" id="sketchSteps" class="gen-num-input" min="1" max="150" step="1" value="20" />
+          </div>
+
+          <div class="gen-field-row">
+            <span class="gen-field-label">Seed</span>
+            <input type="number" id="sketchSeed" class="gen-num-input" min="-1" step="1" value="1" />
+          </div>
+
+          <div class="filter-row" style="margin-top:8px;">
+            <span class="filter-label">CFG Scale</span>
+            <span class="filter-value" id="sketchCfgVal">2.5</span>
+          </div>
+          <input type="range" class="filter-slider" id="sketchCfgSlider" min="1" max="20" step="0.5" value="2.5" />
+
+          <div class="filter-row" style="margin-top:8px;">
+            <span class="filter-label">Denoise</span>
+            <span class="filter-value" id="sketchDenoiseVal">0.55</span>
+          </div>
+          <input type="range" class="filter-slider" id="sketchDenoise" min="0" max="1" step="0.05" value="0.55" />
+
+          <label class="gen-neg-label" for="sketchNegativePrompt">Negative Prompt</label>
+          <textarea
+            id="sketchNegativePrompt"
+            class="gen-neg-textarea"
+            placeholder="e.g. blurry, low quality"
+          ></textarea>
+
+          <button class="btn-generate" id="sketchGenerateBtn" type="button">
+            ▶ Regenerate
+          </button>
+
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER MAIN VIEWPORT -->
+    <main class="gen-main sketch-main">
+      <div class="billboard-row">
+        <div class="billboard billboard-yellow">Sketch</div>
+        <div class="billboard billboard-outline" id="sketchStatusBillboard">READY</div>
+      </div>
+
+      <div class="sketch-two-frame">
+
+        <!-- LEFT FRAME: EDITABLE SKETCH -->
+        <div class="sketch-frame sketch-edit-frame">
+          <div class="sketch-frame-label">Sketch Edit</div>
+
+          <div class="sketch-frame-inner" id="sketchEditFrame">
+            <div class="sketch-canvas-wrap" id="sketchCanvasWrap">
+              <canvas id="sketchBaseCanvas"></canvas>
+              <canvas id="sketchDrawCanvas"></canvas>
+
+              <!-- Text objects will be added here by JS -->
+              <div id="sketchTextLayer" class="sketch-text-layer"></div>
+            </div>
+
+            <div class="sketch-empty" id="sketchEmptyState">
+              Send an image to Sketch first
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT FRAME: GENERATED OUTPUT -->
+        <div class="sketch-frame sketch-output-frame">
+          <div class="sketch-frame-label">Generated Output</div>
+
+          <div class="sketch-frame-inner" id="sketchOutputFrame">
+            <div class="sketch-empty">
+              Regenerated image will appear here
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- RIGHT TOOLBAR: SKETCH TOOLS ONLY -->
+    <aside class="sketch-right-toolbar">
+
+      <div class="sketch-tool-title">Tools</div>
+
+      <button class="sketch-tool-btn active" id="sketchDrawBtn" type="button" title="Free Draw">
+        ✎
+        <span>Draw</span>
+      </button>
+
+      <button class="sketch-tool-btn" id="sketchLineBtn" type="button" title="Straight Line">
+        ╱
+        <span>Line</span>
+      </button>
+
+      <button class="sketch-tool-btn" id="sketchTextBtn" type="button" title="Text">
+        T
+        <span>Text</span>
+      </button>
+
+      <button class="sketch-tool-btn" id="sketchMoveBtn" type="button" title="Move Text">
+        ↕
+        <span>Move</span>
+      </button>
+
+      <button class="sketch-tool-btn" id="sketchEraseBtn" type="button" title="Eraser">
+        ⌫
+        <span>Erase</span>
+      </button>
+
+      <div class="sketch-tool-divider"></div>
+
+      <label class="sketch-tool-label" for="sketchBrushSize">Brush</label>
+      <span class="sketch-tool-value" id="sketchBrushSizeVal">6</span>
+      <input type="range" id="sketchBrushSize" min="1" max="40" step="1" value="6" class="sketch-tool-slider" />
+
+      <label class="sketch-tool-label" for="sketchTextSize">Text</label>
+      <span class="sketch-tool-value" id="sketchTextSizeVal">32</span>
+      <input type="range" id="sketchTextSize" min="8" max="120" step="1" value="32" class="sketch-tool-slider" />
+
+      <label class="sketch-tool-label" for="sketchColor">Color</label>
+      <input type="color" id="sketchColor" value="#E24B4A" class="sketch-toolbar-color" />
+
+      <button class="sketch-tool-clear" id="sketchClearBtn" type="button">
+        Clear Overlay
+      </button>
+
+    </aside>
+
+  </div>
+</div>
+
+    <!-- =================== MODEL SHOT TAB =================== -->
+<div class="tab-content" id="tab-modelshot">
+  <div class="modelshot-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="gen-sidebar modelshot-sidebar">
+
+      <div class="sidebar-section">
+        <div class="section-sign">Input</div>
+        <div class="section-body">
+          <p class="sidebar-note">
+            Upload a GLB model, navigate the view, then capture the camera angle as an image.
+          </p>
+
+          <button class="btn-outline-dark" id="modelshotUploadBtn" type="button">
+            + Upload GLB
+          </button>
+
+          <input
+            type="file"
+            id="modelshotFileInput"
+            accept=".glb,model/gltf-binary"
+            style="display:none;"
+          />
+
+          <button class="btn-outline-dark" id="modelshotResetCameraBtn" type="button" style="margin-top:6px;">
+            Reset Camera
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">Capture</div>
+        <div class="section-body">
+          <button class="btn-generate" id="modelshotCaptureBtn" type="button">
+            Capture View
+          </button>
+
+          <a
+            class="btn-outline-dark"
+            id="modelshotDownloadBtn"
+            download="modelshot.png"
+            style="display:none; margin-top:6px; text-align:center; text-decoration:none;"
+          >
+            Download PNG
+          </a>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">Send To</div>
+        <div class="section-body">
+          <button class="btn-outline-dark" id="modelshotSendImg2ImgBtn" type="button">
+            Image → Image
+          </button>
+
+          <button class="btn-outline-dark" id="modelshotSendMulti1Btn" type="button" style="margin-top:6px;">
+            Multi Ref 1
+          </button>
+
+          <button class="btn-outline-dark" id="modelshotSendMulti2Btn" type="button" style="margin-top:6px;">
+            Multi Ref 2
+          </button>
+
+          <button class="btn-outline-dark" id="modelshotSendSketchBtn" type="button" style="margin-top:6px;">
+            Sketch
+          </button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-sign">Captured Shot</div>
+        <div class="section-body">
+          <div class="modelshot-capture-preview modelshot-sidebar-preview" id="modelshotCapturePreview">
+            <span>No capture yet</span>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- MAIN VIEWER -->
+    <main class="gen-main modelshot-main">
+
+      <div class="billboard-row">
+        <div class="billboard billboard-blue">Model Shot</div>
+        <div class="billboard billboard-outline" id="modelshotStatusBillboard">READY</div>
+      </div>
+
+      <div class="modelshot-viewer-wrap" id="modelshotViewerWrap">
+        <canvas id="modelshotCanvas"></canvas>
+
+        <div class="modelshot-empty" id="modelshotEmpty">
+          <p>Upload a GLB model to start</p>
+          <p style="font-size:9px; opacity:0.4; margin-top:8px;">
+            Orbit · zoom · pan · capture current view
+          </p>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+</div>
+
+    <!-- =================== 3D TAB =================== -->
+    <div class="tab-content" id="tab-threed">
+      <div class="threed-layout">
+
+        <aside class="gen-sidebar">
+          <div class="sidebar-section">
+            <div class="section-sign">Input</div>
+            <div class="section-body">
+              <p class="sidebar-note">Select a generated image or upload one to convert to 3D mesh.</p>
+              <div class="upload-zone" id="threedUploadZone">
+                <input type="file" id="threedFile" accept="image/*" style="display:none;" />
+                <div class="upload-preview" id="threedPreview">
+                  <span class="upload-hint">Click or drag image</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="sidebar-section">
+            <div class="section-sign">Generate</div>
+            <div class="section-body">
+              <button class="btn-generate" id="threedGenBtn">▶ Generate 3D</button>
+              <div class="callout-row" style="margin-top:8px;">
+                <span class="callout-line"></span>
+                <span class="callout-text">TRELLIS.2 · port 8189</span>
+              </div>
+            </div>
+          </div>
+          <div class="sidebar-section">
+            <div class="section-sign">Download</div>
+            <div class="section-body">
+              <a class="btn-generate" id="threedDownloadBtn" style="display:none; text-align:center; text-decoration:none;">↓ Download GLB</a>
+            </div>
+          </div>
+        </aside>
+
+        <main class="gen-main">
+          <div class="billboard-row">
+            <div class="billboard billboard-blue">3D Generation</div>
+            <div class="billboard billboard-outline" id="threedStatusBillboard">READY</div>
+          </div>
+          <div class="threed-preview-wrap">
+            <div id="threedPreviewArea" class="threed-preview">
+              <canvas id="threedCanvas" style="width:100%; height:100%; display:none;"></canvas>
+              <div class="threed-empty" id="threedEmpty">
+                <p>3D mesh will appear here after generation</p>
+                <p style="font-size:9px; opacity:0.4; margin-top:8px;">GLB file downloadable after processing</p>
+              </div>
+            </div>
+          </div>
+          <div class="progress-wrap" id="threedProgress" style="display:none;">
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="threedProgressBar"></div>
+            </div>
+            <span class="progress-label" id="threedProgressLabel">Processing…</span>
+          </div>
+        </main>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- LIGHTBOX IMAGE PREVIEW -->
+  <div class="lightbox-backdrop" id="lightboxBackdrop" style="display:none;">
+    <div class="lightbox-container">
+      <button class="lightbox-close" id="lightboxClose">✕</button>
+      <div class="lightbox-image-wrap">
+        <img id="lightboxImage" class="lightbox-image" src="" alt="Preview" />
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="app-footer">
+    <span class="footer-text">FlatDream · <span class="footer-accent">IAAC GenAI 2026</span> · Torzev LoRA · Archigram Interface · <span class="footer-accent">Ramy Ayoub . Tue Minh</span></span>
+    <div class="footer-annotations">
+      <span class="annotation">→ ComfyUI 8188</span>
+      <span class="annotation">→ LM Studio 1234</span>
+      <span class="annotation">→ TRELLIS2 8189</span>
+    </div>
+  </footer>
+
+  <!-- CONFIG MODAL -->
+  <div class="modal-backdrop" id="configModal" style="display:none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">Configuration</span>
+        <button class="modal-close" id="closeConfigBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="config-section">
+          <h3 class="config-heading">ComfyUI</h3>
+          <label class="config-label">API URL</label>
+          <input type="text" id="cfgComfyUrl" class="config-input" />
+          <label class="config-label">ComfyUI 3D URL</label>
+          <input type="text" id="cfgComfy3dUrl" class="config-input" />
+          <label class="config-label">Steps</label>
+          <input type="number" id="cfgSteps" class="config-input" min="1" max="100" />
+          <label class="config-label">CFG Scale</label>
+          <input type="number" id="cfgCfg" class="config-input" min="1" max="20" step="0.5" />
+        </div>
+        <div class="config-section">
+          <h3 class="config-heading">LM Studio</h3>
+          <label class="config-label">API URL</label>
+          <input type="text" id="cfgLmUrl" class="config-input" />
+          <label class="config-label">Temperature</label>
+          <input type="number" id="cfgLmTemp" class="config-input" min="0" max="2" step="0.1" />
+        </div>
+        <div class="config-section">
+          <h3 class="config-heading">LoRA</h3>
+          <label class="config-label">LoRA Filename</label>
+          <input type="text" id="cfgLoraName" class="config-input" />
+          <label class="config-label">Trigger Word</label>
+          <input type="text" id="cfgLoraTrigger" class="config-input" />
+        </div>
+        <button class="btn-generate" id="testConnectionsBtn" style="margin-top:8px;">Test Connections</button>
+        <div id="connectionResult" style="display:none; margin-top:8px; font-size:16px; letter-spacing:1px; text-transform:uppercase;"></div>
+        <button class="btn-generate" id="saveConfigBtn" style="margin-top:6px;">Save Config</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/comfyui.js"></script>
+  <script src="js/lmstudio.js"></script>
+  <script src="js/lora.js"></script>
+  <script src="js/comicpanels.js"></script>
+  <script src="js/comicbubbles.js"></script>
+  <script src="js/magazine.js"></script>
+  <script src="js/sketch.js"></script>
+  <script src="js/app.js"></script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module" src="js/modelshot.js"></script>
+  <script type="module" src="js/viewer3d.js"></script>
+</body>
+</html>
