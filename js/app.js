@@ -10,6 +10,30 @@ let generatedImages = [];
 let lastPromptUsed = '';      // Fix 7: track last prompt for display
 window._currentFilter = '';
 
+// ---- LoRA selection (global scope) ----
+function selectLora(key) {
+  LoRA.setActive(key);
+
+  ['loraBadge1','magLoraBadge1'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.opacity = key === 'torzev' ? '1' : '0.45';
+  });
+  ['loraBadge2','magLoraBadge2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.opacity = key === 'jmsmcbnntt' ? '1' : '0.45';
+  });
+
+  const strengthVal = LoRA.getStrength();
+  ['loraStrengthSlider','magLoraStrengthSlider'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = strengthVal;
+  });
+  ['loraStrengthLabel','magLoraStrengthLabel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = 'strength ' + strengthVal.toFixed(2);
+  });
+}
+
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', () => {
   initNav();
@@ -853,9 +877,15 @@ function initLoraStrength() {
   if (!slider) return;
   slider.value    = Config.get().loraStrength;
   label.textContent = `strength ${slider.value}`;
-  slider.addEventListener('input', () => {
-    label.textContent = `strength ${parseFloat(slider.value).toFixed(2)}`;
-    Config.set('loraStrength', parseFloat(slider.value));
+  slider.addEventListener('input', e => {
+    const val = parseFloat(e.target.value);
+    const key = LoRA.getActive() === 'torzev' ? 'loraStrength' : 'lora2Strength';
+    Config.set(key, val);
+    document.getElementById('loraStrengthLabel').textContent = 'strength ' + val.toFixed(2);
+    if (document.getElementById('magLoraStrengthSlider')) {
+      document.getElementById('magLoraStrengthSlider').value = val;
+      document.getElementById('magLoraStrengthLabel').textContent = 'strength ' + val.toFixed(2);
+    }
   });
 }
 
@@ -952,3 +982,4 @@ function updateLoadingProgress(pct) {
 window.addToGallery = addToGallery;
 window.sendImageToSketch = sendImageToSketch;
 window.sendImageTo3D = sendImageTo3D;
+window.selectLora = selectLora;

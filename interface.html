@@ -82,7 +82,12 @@
           <div class="sidebar-section">
             <div class="section-sign">LoRA</div>
             <div class="section-body">
-              <div class="lora-badge">torzev</div>
+              <div style="display:flex; gap:6px; margin-bottom:8px;">
+                <div class="lora-badge active-lora" id="loraBadge1" data-lora="torzev"
+                     onclick="selectLora('torzev')" style="cursor:pointer; flex:1; text-align:center;">TORZEV</div>
+                <div class="lora-badge" id="loraBadge2" data-lora="jmsmcbnntt"
+                     onclick="selectLora('jmsmcbnntt')" style="cursor:pointer; flex:1; text-align:center; opacity:0.45;">JMSMCBNNTT</div>
+              </div>
               <div class="callout-row">
                 <span class="callout-line"></span>
                 <span class="callout-text" id="loraStrengthLabel">strength 1.0</span>
@@ -314,7 +319,12 @@
       <div class="sidebar-section">
         <div class="section-sign">LoRA</div>
         <div class="section-body">
-          <div class="lora-badge">torzev</div>
+          <div style="display:flex; gap:6px; margin-bottom:8px;">
+            <div class="lora-badge active-lora" id="magLoraBadge1" data-lora="torzev"
+                 onclick="selectLora('torzev')" style="cursor:pointer; flex:1; text-align:center;">TORZEV</div>
+            <div class="lora-badge" id="magLoraBadge2" data-lora="jmsmcbnntt"
+                 onclick="selectLora('jmsmcbnntt')" style="cursor:pointer; flex:1; text-align:center; opacity:0.45;">JMSMCBNNTT</div>
+          </div>
           <div class="callout-row">
             <span class="callout-line"></span>
             <span class="callout-text" id="magLoraStrengthLabel">strength 1.0</span>
